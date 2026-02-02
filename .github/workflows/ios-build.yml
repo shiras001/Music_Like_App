@@ -29,7 +29,7 @@ jobs:
           pod install
 
       - name: Import signing certificate (optional)
-        if: secrets.APPLE_CERTIFICATE != '' && secrets.APPLE_CERTIFICATE_PASSWORD != ''
+        if: ${{ secrets.APPLE_CERTIFICATE != '' && secrets.APPLE_CERTIFICATE_PASSWORD != '' }}
         run: |
           echo "Importing certificate"
           echo "${{ secrets.APPLE_CERTIFICATE }}" | base64 --decode > /tmp/codesign_cert.p12
@@ -41,7 +41,7 @@ jobs:
           security unlock-keychain -p "" ~/Library/Keychains/$KEYCHAIN
 
       - name: Install provisioning profile (optional)
-        if: secrets.APPLE_PROVISIONING_PROFILE != ''
+        if: ${{ secrets.APPLE_PROVISIONING_PROFILE != '' }}
         run: |
           echo "Installing provisioning profile"
           echo "${{ secrets.APPLE_PROVISIONING_PROFILE }}" | base64 --decode > /tmp/profile.mobileprovision
