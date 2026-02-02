@@ -1,0 +1,2 @@
+C:/Users/pomyu/Documents/appmaker/apple music/flutter_application_4/build/.cxx/debug/4xr6d2b4/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/pomyu/Documents/appmaker/apple music/flutter_application_4/build/.cxx/debug/4xr6d2b4/armeabi-v7a/CMakeFiles/rebuild_cache.dir

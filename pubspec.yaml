@@ -1,0 +1,57 @@
+name: music_like
+description: MUSIC LIKE - Apple Music ライク音楽ストリーミングアプリ
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.10.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.4.0
+  riverpod: ^2.4.0
+  cupertino_icons: ^1.0.6
+  flutter_launcher_icons: ^0.14.0
+  
+  # ファイル選択ダイアログ
+  file_picker: ^8.0.0
+  
+  # ストレージパス取得
+  path_provider: ^2.1.0
+  
+  # YouTube音声取得
+  youtube_explode_dart: ^3.0.5
+  
+  # パス操作
+  path: ^1.8.0
+  
+  # HTTP通信（YouTube動画情報取得用）
+  http: ^1.1.0
+  
+  # シンプルなオーディオ再生
+  just_audio: ^0.9.33
+  
+  # 通知・ロック画面制御
+  audio_service: ^0.18.0
+  
+  # 設定の永続化
+  shared_preferences: ^2.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - app_icon.png
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "app_icon.png"
+  min_sdk_android: 21
