@@ -1,0 +1,220 @@
+Windows PCだけでiPhoneアプリを作ろう！
+Windows
+iPhone開発
+reactnative
+expo
+AdventCalendar2024
+最終更新日 2024年12月22日
+投稿日 2024年12月22日
+はじめに
+スマートフォンアプリ開発において、AndroidアプリはOSを問わず開発が可能です。
+しかしiPhoneアプリの開発は、基本的にはMac OSとXcodeがないと行えないため、Windows PCしか持っていない人にはハードルが高くなっています。
+特に初めてアプリ開発を行いたいときに、形にできるか不明な段階で10万以上の出費を行うことは不安です。
+
+そこで本記事では、Windows PCしかない人でもiPhoneアプリが開発できる環境の作り方を紹介し、もっと気軽にアプリ開発に手を出してもらえるようにするお手伝いをします。
+（それを足がかりに、React Nativeに興味を持って貰う人を増やします）
+
+記事を読んで分かること・分からないこと
+分かること
+
+React Native + Expoを使ってWindows PCでiPhone開発をする環境を整える方法が分かる
+開発したアプリをAppstoreで公開するためにビルドする方法がわかる
+分からないこと
+
+React Nativeの基本的なコーディング方法
+iPhoneアプリをAppstoreで公開する際の手順
+用意するもの
+まず、開発に必要なものとして以下のものがあります。
+
+Node.jsが動作するWindows PC
+VScode等の好きなエディタ
+iPhoneの実機（テスト用）
+iPhoneアプリ開発にはReact Nativeを使用するため、Node.jsが動作するWindows PCが必要です。
+また、エディタは何でも良いですが、iPhone上でのテストを行うために、iPhoneの実機が必要になります。
+最悪、Androidでテストすることも不可能ではないですが、iOSのシミュレーターでテストができない分、実機でのテストはできたほうが良いです。
+
+React Native + Expoの開発環境を整える
+では、React Native + Expoを使ったiPhoneアプリ開発の環境を整えていきましょう。
+
+Node.jsのインストール
+まずはNode.jsをインストールします。
+すでにNode.jsの環境がある人は飛ばして構いません。
+
+
+
+こちらのサイトからWindows用のインストーラを入れてインストールしましょう。
+今後複数のNode.jsを入れる可能性がある場合は、Volta等のNode.jsバージョン管理を入れても良いです。
+
+
+
+「ターミナル」アプリを開いて以下のコマンドを実行し、正しく結果が帰ってくればOKです。
+
+PS C:\Users\hoge> node --version
+v20.x.x
+Expoアプリのプロジェクト作成
+続いて、「ターミナル」アプリで好きなフォルダの中で以下のコマンドを実行してExpoアプリのプロジェクトを作成します。
+
+PS C:\Users\test\dev> npx create-expo-app@latest
+Creating an Expo project using the default template.
+
+To choose from all available templates pass in the --template arg:
+  $ npx create-expo-app --template
+
+To choose from all available examples pass in the --example arg:
+  $ npx create-expo-app --example
+
+√ What is your app named? ... my-app
+√ Downloaded and extracted project files.
+> npm install
+# ...省略
+added 1178 packages, and audited 1179 packages in 3m
+
+105 packages are looking for funding
+  run `npm fund` for details
+
+5 low severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+✅ Your project is ready!
+
+To run your project, navigate to the directory and run one of the following npm commands.
+
+- cd my-app
+- npm run android
+- npm run ios # you need to use macOS to build the iOS project - use the Expo app if you need to do iOS development without a Mac
+- npm run web
+実行するとフォルダが作成されるため、VScodeで対象のフォルダを開きます。
+すると、以下のような形でプロジェクトが作成されています。
+
+Expo Project at VScode
+
+ひとまずこれでアプリ開発のためのプロジェクトの準備はできました。
+
+今回は標準のテンプレートを使用しましたが、npx create-expo-app@latestを使う際に--templateでテンプレートを指定することで、ミニマルなプロジェクトから開始することも可能です。
+
+
+
+iPhone実機でのテスト準備
+最後に実機でのテストの準備をします。
+といっても、あるアプリをインストールしておくだけです。
+
+
+
+こちらの「Expo Go」アプリで作成したアプリのテストをしていきます。
+まず、VScodeのNPMスクリプトから、startを選んでみましょう。
+すると、以下のように表示されるはずです。
+
+image.png
+
+ここで表示されたQRコードをiPhoneの普通のカメラアプリで読み取ります。
+すると、「Expo Goで開く」というのが選べるはずですので、そちらを選んでExpo Goアプリを開きます。
+あとはアプリが勝手にPCで起動しているサーバーに接続してアプリの実行をしてくれます。
+
+なお、この際に実機iPhoneとWindows PCは同じネットワーク上にいる必要があります。
+同一のWi-Fiにアクセスするなどしておいてください。
+
+あとは、エディタ側でソースを変更すれば、実機側でホットリロードして更新を反映できます。
+これで、Windows PC上でiPhone実機を使った開発・テストの環境が整備できました！
+
+Expo Goの制約
+このように、React Native + Expoでは、XcodeやMacを用意しなくてもiPhoneアプリの開発を行う環境を用意することが可能です。
+ただし、いくつか制約があるため注意が必要です。
+
+一部のReact Native向けライブラリが使用できない
+Expo Goは使用できるライブラリに制限があるため、使用できないライブラリがあります。
+例えば以下のようなものです。
+
+react-native-google-mobile-ads：React NativeでAdmob（広告）を使用するためのライブラリ
+react-native-purchases：Revenue Cat（課金）を使用するためのライブラリ
+これらのライブラリは、Expo Goアプリでは使用できません。
+別途、Expo Dev Clientというものを作成すれば使用できますが、クラウド（またはMac実機）を用いたビルド処理が必要となるため、手軽にテストができなくなります。
+
+ただ、expoのドキュメントを見てもらえば分かりますが、スマホアプリで使いたい機能はほとんどExpo Goで対応しており、MVP的な用途であれば困ることはほとんどありません。
+Expo Goで可能な範囲を先に開発することで、検証することが可能でしょう。
+
+また、JSライブラリについては外部ライブラリでも利用可能です。
+大抵のReact NativeライブラリはExpo Goに対応しているかを記載してくれてますので、確認して利用しましょう。
+（記載が無い場合は使えることが多く、利用できない場合に記載があります）
+
+稀にテストできない機能などがある
+Expo Goアプリでのテストは、あくまでもExpo Goアプリでラップされた環境でのテストになるため、まれにリリース用にビルドした場合と動作が異なることがあります。
+また、アプリのアイコンの確認や、カメラ・ファイルアクセス等のパーミッション周りの動作もリリース用ビルドとは異なるため注意が必要です。
+
+後述のリリース用ビルド作成後に、リリース用ビルドアプリで再度テストが必要になります。
+
+EAS buildを用いたリリース用ビルドの作成
+最後に、アプリが作成できたらAppstoreで公開するためにリリース用ビルドを作成する必要があります。
+これもExpoではEAS buildというクラウド上でビルドするサービスが用意されています。
+
+EAS buildは、iOSまたはAndroidアプリをクラウド上でビルドしてくれるサービスです。
+特にiOSの場合、EASが勝手にProvisioning Profileや証明書なども作成・更新等してくれるため、とても簡単にリリースビルドを作成することができます。
+
+EAS buildのセットアップ
+EAS buildを利用するには、まずExpoのアカウントを作成する必要があります。
+以下のサイトで登録してください。
+
+
+
+続いてEAS Cliをインストールしてセットアップしていきます。
+
+npm install -g eas-cli
+eas login # 作成したExpoアカウントでログイン
+eas init
+eas build:configure # 初期設定ファイルを作成
+上記を実行するとeas.jsonファイルが作成されます。
+あとは以下のコマンドでビルドが可能です。
+
+eas build
+# Apple Accountへのログイン等、聞かれたことに答えていく
+
+# ...省略
+
+Compressing project files and uploading to EAS Build. Learn more: https://expo.fyi/eas-build-archive
+✔ Uploaded to EAS 
+⌛️ Computing the project fingerprint is taking longer than expected...
+⏩ To skip this step, set the environment variable: EAS_SKIP_AUTO_FINGERPRINT=1
+✔ Computed project fingerprint
+
+Build details: https://expo.dev/accounts/{account}/projects/{app_name}/builds/00e4da3d-6c0f-4358-9a8c-f1252d49e2b3
+
+Waiting for build to complete. You can press Ctrl+C to exit.
+  Build queued...
+
+Start builds sooner in the priority queue.
+Sign up for EAS Production or Enterprise at https://expo.dev/accounts/{account}/settings/billing
+
+Waiting in Free tier queue
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■|
+
+| Build in progress...
+上記のようにBuild中の表示がされればOKです。
+あとはクラウド側でビルドが完了するのを待ちます。
+ビルドが完了すると「Build in progress...」の表示が「Build finished」に変わり、ダウンロード用のURLも表示されます。
+
+また、Appstoreへの登録は以下のコマンドで実行可能です。
+
+eas submit
+Appstoreへのアップロードも通常はXcodeかMacが必要ですが、EASを使用すればビルド～登録までクラウド上で完結することが可能です。
+あとは、App Store Connectにブラウザからアクセスし、アプリの情報などを入力して審査に提出すれば、アプリの公開が可能です。
+
+EASの制約
+EASは便利ですが、無料で利用できる範囲には制約があります。
+
+1ヶ月に利用可能なビルド回数（iOSの場合は15回）
+有償ユーザーが優先的にビルドされる
+特に1ヶ月に利用可能なビルド回数は、デバッグ用のビルドまで含めるとすぐに使い切ってしまいます。
+そのため、なるべく無駄遣いしないようにしたり、本格的に開発する際はMacを購入してローカルでビルドするなどの対策が必要です。
+
+まとめ
+iPhoneアプリの開発には以下の2箇所でMacが必要です。
+
+アプリのビルド時
+リリースビルドのApp Store Connectアップロード時
+React Native + Expoを利用すると、上記2箇所をそれぞれExpo Go、EASが代替してくれるため、Macを持っていなくても開発が可能となります。
+これは他のマルチプラットフォームフレームワーク（Flutterとか）にはないメリットです。
+
+これからiPhoneアプリを開発したいと思っている人は、ぜひReact Native + Expoの環境でアプリ制作にチャレンジしてみてください。
