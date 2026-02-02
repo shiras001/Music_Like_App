@@ -1,37 +1,70 @@
-name: Build iOS IPA
+name: iOS Build
 
 on:
   push:
-    branches: [ main ]
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
   workflow_dispatch:
 
 jobs:
-  build:
+  build-ios:
     runs-on: macos-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Flutter
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'stable'
+          channel: stable
+          cache: true
 
-      - name: Install dependencies
+      - name: Flutter Pub Get
         run: flutter pub get
 
-      - name: Build iOS (no codesign)
-        run: flutter build ios --release --no-codesign
-
-      - name: Create IPA
+      - name: Install CocoaPods
         run: |
-          mkdir Payload
-          cp -r build/ios/iphoneos/Runner.app Payload/
-          zip -r app.ipa Payload
+          cd ios
+          pod install
 
-      - name: Upload IPA
+      - name: Import signing certificate (optional)
+        if: secrets.APPLE_CERTIFICATE != '' && secrets.APPLE_CERTIFICATE_PASSWORD != ''
+        run: |
+          echo "Importing certificate"
+          echo "${{ secrets.APPLE_CERTIFICATE }}" | base64 --decode > /tmp/codesign_cert.p12
+          KEYCHAIN=build.keychain
+          security create-keychain -p "" "$KEYCHAIN"
+          security import /tmp/codesign_cert.p12 -k ~/Library/Keychains/$KEYCHAIN -P "${{ secrets.APPLE_CERTIFICATE_PASSWORD }}" -T /usr/bin/codesign
+          security list-keychains -s ~/Library/Keychains/$KEYCHAIN
+          security default-keychain -s ~/Library/Keychains/$KEYCHAIN
+          security unlock-keychain -p "" ~/Library/Keychains/$KEYCHAIN
+
+      - name: Install provisioning profile (optional)
+        if: secrets.APPLE_PROVISIONING_PROFILE != ''
+        run: |
+          echo "Installing provisioning profile"
+          echo "${{ secrets.APPLE_PROVISIONING_PROFILE }}" | base64 --decode > /tmp/profile.mobileprovision
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp /tmp/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+
+      - name: Build IPA (signed if secrets provided)
+        env:
+          EXPORT_METHOD: ${{ secrets.EXPORT_METHOD }}
+        run: |
+          # set default export method if not provided
+          if [ -z "${EXPORT_METHOD}" ]; then
+            EXPORT_METHOD=ad-hoc
+          fi
+          echo "Using export method: ${EXPORT_METHOD}"
+          if [ -n "${{ secrets.APPLE_CERTIFICATE }}" ] && [ -n "${{ secrets.APPLE_CERTIFICATE_PASSWORD }}" ]; then
+            flutter build ipa --export-method=${EXPORT_METHOD}
+          else
+            flutter build ipa --no-codesign
+          fi
+
+      - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-ipa
-          path: app.ipa
+          path: build/ios/ipa/*.ipa
