@@ -1,0 +1,15 @@
+arb-dir: lib/l10n
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+preferred-supported-locales:
+  - en
+  - ja
+  - ko
+  - de
+  - fr
+  - zh
+  - zh_TW
+  - es
+  - pt_BR
+  - ru
+untranslated-messages-file: l10n_untranslated_pt.txt

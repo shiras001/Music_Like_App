@@ -11,6 +11,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
+import 'package:image/image.dart' as img;
 import '../domain/entities.dart';
 
 /// ローカルファイル読み込みサービスのインターフェース
@@ -44,6 +45,12 @@ abstract class ILocalAudioService {
   /// 戻り値：
   /// - 歌詞文字列（LRC形式）
   Future<String> readLyricsFile(String lrcPath);
+
+  /// 複数ファイルのメタデータをバッチ取得
+  Future<List<ImportMetadata>> parseMetadataBatch(
+    List<String> filePaths, {
+    Map<String, String?>? lyricsOverrides,
+  });
 }
 
 /// オーディオファイルのメタデータ
@@ -67,8 +74,29 @@ class AudioFileMetadata {
   });
 }
 
-// Uint8List をインポート
-typedef Uint8List = List<int>;
+/// インポート用の軽量メタデータ（サムネイル含む）
+class ImportMetadata {
+  final String title;
+  final String artist;
+  final String album;
+  final Duration duration;
+  final String filePath;
+  final String fileFormat;
+  final String? lyricsPath;
+  final Uint8List? artworkThumbnail;
+
+  ImportMetadata({
+    required this.title,
+    required this.artist,
+    required this.album,
+    required this.duration,
+    required this.filePath,
+    required this.fileFormat,
+    this.lyricsPath,
+    this.artworkThumbnail,
+  });
+}
+
 
 /// ローカルファイル読み込みサービスの実装
 /// 
@@ -79,6 +107,7 @@ class LocalAudioServiceImpl implements ILocalAudioService {
   // サポート対象の拡張子
   static const List<String> supportedExtensions = ['.m4a', '.mp3', '.flac', '.wav'];
   static const String lyricsExtension = '.lrc';
+
 
   @override
   Future<List<Song>> scanDirectory(String dirPath) async {
@@ -92,7 +121,19 @@ class LocalAudioServiceImpl implements ILocalAudioService {
       for (final entry in files) {
         if (entry is File && isSupportedAudioFile(entry.path)) {
           try {
-            final metadata = await getMetadata(entry.path);
+            // Offload heavy metadata parsing to an isolate to avoid blocking UI
+            final Map<String, dynamic> metaMap = await compute(_computeMetadata, entry.path);
+            final metadata = AudioFileMetadata(
+              title: metaMap['title'] as String,
+              artist: metaMap['artist'] as String,
+              album: metaMap['album'] as String,
+                artworkData: metaMap['artwork'] != null
+                  ? Uint8List.fromList(List<int>.from(metaMap['artwork'] as List))
+                  : null,
+              lyrics: metaMap['lyrics'] as String,
+              duration: Duration(seconds: metaMap['durationSeconds'] as int),
+              filePath: metaMap['filePath'] as String,
+            );
             final ext = path.extension(entry.path).toLowerCase();
 
             String? artworkUrl;
@@ -536,12 +577,11 @@ class LocalAudioServiceImpl implements ILocalAudioService {
       try {
         // APIC payload: encoding(1) + mime (null-terminated) + picture type(1) + description (null-terminated) + image data
         int pos = 0;
-        final encoding = apic[pos];
+        // skip encoding
         pos++;
-        // read mime string until 0x00
+        // read mime string until 0x00 (we don't need the mime value here)
         int mimeEnd = pos;
         while (mimeEnd < apic.length && apic[mimeEnd] != 0x00) mimeEnd++;
-        final mime = String.fromCharCodes(apic.sublist(pos, mimeEnd));
         pos = mimeEnd + 1;
         if (pos >= apic.length) return null;
         // skip picture type
@@ -552,7 +592,7 @@ class LocalAudioServiceImpl implements ILocalAudioService {
         pos = descEnd + 1;
         if (pos >= apic.length) return null;
         final imageData = apic.sublist(pos);
-        if (imageData.length > 100) return imageData;
+        if (imageData.length > 100) return Uint8List.fromList(imageData);
       } catch (_) {}
     }
     // fallback: search for JPEG/PNG markers anywhere
@@ -561,7 +601,7 @@ class LocalAudioServiceImpl implements ILocalAudioService {
         for (int j = i + 2; j < bytes.length - 1; j++) {
           if (bytes[j] == 0xFF && bytes[j + 1] == 0xD9) {
             final imageData = bytes.sublist(i, j + 2);
-            if (imageData.length > 1000) return imageData;
+            if (imageData.length > 1000) return Uint8List.fromList(imageData);
           }
         }
       }
@@ -570,7 +610,7 @@ class LocalAudioServiceImpl implements ILocalAudioService {
           if (bytes[k] == 0x49 && bytes[k + 1] == 0x45 && bytes[k + 2] == 0x4E && bytes[k + 3] == 0x44) {
             final endPos = (k + 8) < bytes.length ? k + 8 : k + 4;
             final imageData = bytes.sublist(i, endPos);
-            if (imageData.length > 1000) return imageData;
+            if (imageData.length > 1000) return Uint8List.fromList(imageData);
           }
         }
       }
@@ -607,7 +647,7 @@ class LocalAudioServiceImpl implements ILocalAudioService {
               if ((imageData[0] == 0xFF && imageData[1] == 0xD8) ||
                   (imageData[0] == 0x89 && imageData[1] == 0x50)) {
                 debugPrint('[MP4 covr] Valid image data found');
-                return imageData;  // sublistは既にUint8Listを返す
+                return Uint8List.fromList(imageData);
               }
             }
             break;
@@ -630,7 +670,7 @@ class LocalAudioServiceImpl implements ILocalAudioService {
             final imageData = bytes.sublist(i, j + 2);
             if (imageData.length > 1000) {
               debugPrint('[MP4 JPEG fallback] Found JPEG ${imageData.length} bytes');
-              return imageData;  // sublistは既にUint8Listを返す
+              return Uint8List.fromList(imageData);
             }
           }
         }
@@ -643,7 +683,7 @@ class LocalAudioServiceImpl implements ILocalAudioService {
             final imageData = bytes.sublist(i, endPos);
             if (imageData.length > 1000) {
               debugPrint('[MP4 PNG fallback] Found PNG ${imageData.length} bytes');
-              return imageData;  // sublistは既にUint8Listを返す
+              return Uint8List.fromList(imageData);
             }
           }
         }
@@ -716,6 +756,30 @@ class LocalAudioServiceImpl implements ILocalAudioService {
     }
   }
 
+  @override
+  Future<List<ImportMetadata>> parseMetadataBatch(
+    List<String> filePaths, {
+    Map<String, String?>? lyricsOverrides,
+  }) async {
+    final args = {
+      'paths': filePaths,
+      'lyrics': lyricsOverrides ?? <String, String?>{},
+    };
+    final result = await compute(_computeMetadataBatch, args);
+    return result.map((m) {
+      return ImportMetadata(
+        title: m['title'] as String,
+        artist: m['artist'] as String,
+        album: m['album'] as String,
+        duration: Duration(seconds: m['durationSeconds'] as int),
+        filePath: m['filePath'] as String,
+        fileFormat: m['fileFormat'] as String,
+        lyricsPath: m['lyricsPath'] as String?,
+        artworkThumbnail: m['artworkThumb'] as Uint8List?,
+      );
+    }).toList();
+  }
+
   /// ファイルの再生時間を推定（ファイルサイズから）
   /// 注：正確な時間を得るには、オーディオライブラリが必要
   static Future<Duration> _estimateDuration(String filePath) async {
@@ -768,8 +832,6 @@ class LocalAudioServiceImpl implements ILocalAudioService {
               
               // MPEG version (bits 4-3 of byte1)
               final versionBits = (byte1 >> 3) & 0x03;
-              // Layer (bits 2-1 of byte1)
-              final layerBits = (byte1 >> 1) & 0x03;
               // Bitrate index (bits 7-4 of byte2)
               final bitrateIndex = (byte2 >> 4) & 0x0F;
 
@@ -832,4 +894,191 @@ class LocalAudioServiceImpl implements ILocalAudioService {
     final ext = path.extension(filePath).toLowerCase();
     return supportedExtensions.contains(ext);
   }
+}
+
+// Top-level function executed in an isolate via compute().
+// Returns a JSON-serializable Map describing metadata.
+Map<String, dynamic> _computeMetadata(String filePath) {
+  try {
+    final file = File(filePath);
+    if (!file.existsSync()) throw Exception('File not found');
+
+    final bytes = file.readAsBytesSync();
+    final ext = path.extension(filePath).toLowerCase();
+
+    String title = LocalAudioServiceImpl.getFileNameWithoutExtension(filePath);
+    String artist = 'Unknown Artist';
+    String album = 'Unknown Album';
+    List<int>? artwork;
+
+    if (ext == '.m4a' || ext == '.mp4') {
+      final name = LocalAudioServiceImpl._findMp4AtomText(bytes, [0xA9, 0x6E, 0x61, 0x6D]);
+      final art = LocalAudioServiceImpl._findMp4AtomText(bytes, [0xA9, 0x41, 0x52, 0x54]);
+      final alb = LocalAudioServiceImpl._findMp4AtomText(bytes, [0xA9, 0x61, 0x6C, 0x62]);
+      if (name != null && name.isNotEmpty) title = name;
+      if (art != null && art.isNotEmpty) artist = art;
+      if (alb != null && alb.isNotEmpty) album = alb;
+      final mp4Image = LocalAudioServiceImpl._findMp4Image(bytes);
+      if (mp4Image != null && mp4Image.isNotEmpty) artwork = mp4Image;
+    }
+
+    if (ext == '.mp3') {
+      final tit2 = LocalAudioServiceImpl._findId3Frame(bytes, [0x54, 0x49, 0x54, 0x32]);
+      final tpe1 = LocalAudioServiceImpl._findId3Frame(bytes, [0x54, 0x50, 0x45, 0x31]);
+      final talb = LocalAudioServiceImpl._findId3Frame(bytes, [0x54, 0x41, 0x4C, 0x42]);
+      if (tit2 != null && tit2.isNotEmpty) title = tit2;
+      if (tpe1 != null && tpe1.isNotEmpty) artist = tpe1;
+      if (talb != null && talb.isNotEmpty) album = talb;
+      final mp3Image = LocalAudioServiceImpl._findMp3Image(bytes);
+      if (mp3Image != null && mp3Image.isNotEmpty) artwork = mp3Image;
+    }
+
+    // Simple duration estimate using file size (fast, synchronous)
+    final fileLen = file.lengthSync();
+    const int estimatedBitrate = 128000; // bits per second
+    final durationSeconds = ((fileLen * 8) / estimatedBitrate).toInt();
+
+    // LRC
+    final lrcPath = LocalAudioServiceImpl.buildLrcPath(filePath);
+    String lyrics = '';
+    final lrcFile = File(lrcPath);
+    if (lrcFile.existsSync()) {
+      try {
+        lyrics = lrcFile.readAsStringSync();
+      } catch (_) {}
+    }
+
+    return {
+      'title': title,
+      'artist': artist,
+      'album': album,
+      'artwork': artwork,
+      'lyrics': lyrics,
+      'durationSeconds': durationSeconds,
+      'filePath': filePath,
+    };
+  } catch (e) {
+    return {
+      'title': LocalAudioServiceImpl.getFileNameWithoutExtension(filePath),
+      'artist': 'Unknown Artist',
+      'album': 'Unknown Album',
+      'artwork': null,
+      'lyrics': '',
+      'durationSeconds': 0,
+      'filePath': filePath,
+    };
+  }
+}
+
+List<int>? _createThumbnailBytes(List<int>? artworkBytes, {int maxSize = 1024}) {
+  if (artworkBytes == null || artworkBytes.isEmpty) return null;
+  try {
+    final decoded = img.decodeImage(Uint8List.fromList(artworkBytes));
+    if (decoded == null) return null;
+    final resized = img.copyResize(
+      decoded,
+      width: decoded.width >= decoded.height ? maxSize : null,
+      height: decoded.height > decoded.width ? maxSize : null,
+      interpolation: img.Interpolation.average,
+    );
+    return img.encodeJpg(resized, quality: 90);
+  } catch (_) {
+    return null;
+  }
+}
+
+// Batch metadata parser executed in an isolate.
+List<Map<String, dynamic>> _computeMetadataBatch(Map<String, dynamic> args) {
+  final paths = (args['paths'] as List).cast<String>();
+  final lyrics = (args['lyrics'] as Map).cast<String, String?>();
+  const int maxReadBytes = 512 * 1024; // 512KB
+
+  final results = <Map<String, dynamic>>[];
+
+  for (final filePath in paths) {
+    try {
+      final file = File(filePath);
+      if (!file.existsSync()) {
+        continue;
+      }
+
+      final fileLen = file.lengthSync();
+      List<int> bytes;
+      if (fileLen <= maxReadBytes) {
+        bytes = file.readAsBytesSync();
+      } else {
+        final raf = file.openSync();
+        bytes = raf.readSync(maxReadBytes);
+        raf.closeSync();
+      }
+
+      final ext = path.extension(filePath).toLowerCase();
+      String title = LocalAudioServiceImpl.getFileNameWithoutExtension(filePath);
+      String artist = 'Unknown Artist';
+      String album = 'Unknown Album';
+      List<int>? artwork;
+
+      if (ext == '.m4a' || ext == '.mp4') {
+        final name = LocalAudioServiceImpl._findMp4AtomText(bytes, [0xA9, 0x6E, 0x61, 0x6D]);
+        final art = LocalAudioServiceImpl._findMp4AtomText(bytes, [0xA9, 0x41, 0x52, 0x54]);
+        final alb = LocalAudioServiceImpl._findMp4AtomText(bytes, [0xA9, 0x61, 0x6C, 0x62]);
+        if (name != null && name.isNotEmpty) title = name;
+        if (art != null && art.isNotEmpty) artist = art;
+        if (alb != null && alb.isNotEmpty) album = alb;
+        artwork = LocalAudioServiceImpl._findMp4Image(bytes);
+      }
+
+      if (ext == '.mp3') {
+        final tit2 = LocalAudioServiceImpl._findId3Frame(bytes, [0x54, 0x49, 0x54, 0x32]);
+        final tpe1 = LocalAudioServiceImpl._findId3Frame(bytes, [0x54, 0x50, 0x45, 0x31]);
+        final talb = LocalAudioServiceImpl._findId3Frame(bytes, [0x54, 0x41, 0x4C, 0x42]);
+        if (tit2 != null && tit2.isNotEmpty) title = tit2;
+        if (tpe1 != null && tpe1.isNotEmpty) artist = tpe1;
+        if (talb != null && talb.isNotEmpty) album = talb;
+        artwork = LocalAudioServiceImpl._findMp3Image(bytes);
+      }
+
+      // Simple duration estimate using file size
+      const int estimatedBitrate = 128000; // bits per second
+      final durationSeconds = ((fileLen * 8) / estimatedBitrate).toInt();
+
+      final thumbBytes = _createThumbnailBytes(artwork);
+
+      // Lyrics path override or auto-detect
+      final overrideLyrics = lyrics[filePath];
+      String? lyricsPath;
+      if (overrideLyrics != null && overrideLyrics.isNotEmpty) {
+        lyricsPath = overrideLyrics;
+      } else {
+        final lrcPath = LocalAudioServiceImpl.buildLrcPath(filePath);
+        if (File(lrcPath).existsSync()) {
+          lyricsPath = lrcPath;
+        }
+      }
+
+      results.add({
+        'title': title,
+        'artist': artist,
+        'album': album,
+        'durationSeconds': durationSeconds,
+        'filePath': filePath,
+        'fileFormat': ext.replaceFirst('.', '').toUpperCase(),
+        'lyricsPath': lyricsPath,
+        'artworkThumb': thumbBytes != null ? Uint8List.fromList(thumbBytes) : null,
+      });
+    } catch (_) {
+      results.add({
+        'title': LocalAudioServiceImpl.getFileNameWithoutExtension(filePath),
+        'artist': 'Unknown Artist',
+        'album': 'Unknown Album',
+        'durationSeconds': 0,
+        'filePath': filePath,
+        'fileFormat': path.extension(filePath).replaceFirst('.', '').toUpperCase(),
+        'lyricsPath': lyrics[filePath],
+        'artworkThumb': null,
+      });
+    }
+  }
+
+  return results;
 }

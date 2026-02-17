@@ -1,0 +1,358 @@
+{
+  "@@locale": "ja",
+  "appTitle": "Music Like",
+  "commonCancel": "キャンセル",
+  "commonSave": "保存",
+  "commonClose": "閉じる",
+  "commonDetails": "詳細",
+  "commonDelete": "削除",
+  "commonApply": "変更",
+  "commonReset": "リセット",
+  "commonPlay": "再生",
+  "commonShuffle": "シャッフル",
+  "commonSearch": "検索",
+  "commonSort": "並び替え",
+  "commonEdit": "編集",
+  "commonRetry": "再試行",
+  "commonSaveChanges": "保存",
+  "tabSongs": "曲",
+  "tabArtists": "アーティスト",
+  "tabAlbums": "アルバム",
+  "tabPlaylists": "プレイリスト",
+  "drawerSettings": "設定",
+  "drawerEditCategories": "カテゴリを編集",
+  "drawerSort": "並び替え",
+  "libraryLoadFailed": "ライブラリの読み込みに失敗しました",
+  "libraryReload": "再読み込み",
+  "errorDetailsTitle": "エラー詳細",
+  "errorClose": "閉じる",
+  "searchHint": "曲名・アーティスト・アルバム",
+  "categoryEditTitle": "カテゴリを編集",
+  "categorySongs": "曲",
+  "categoryArtists": "アーティスト",
+  "categoryAlbums": "アルバム",
+  "categoryPlaylists": "プレイリスト",
+  "sortTitleAsc": "タイトル (昇順)",
+  "sortTitleDesc": "タイトル (降順)",
+  "sortArtistAsc": "アーティスト (昇順)",
+  "sortArtistDesc": "アーティスト (降順)",
+  "sortDurationAsc": "再生時間 (短い順)",
+  "sortDurationDesc": "再生時間 (長い順)",
+  "noSongs": "曲がありません",
+  "noArtists": "アーティストがありません",
+  "noAlbums": "アルバムがありません",
+  "noPlaylists": "プレイリストがありません",
+  "noResults": "検索結果がありません",
+  "songCount": "{count}曲",
+  "@songCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "artistSongCount": "{artist} • {count}曲",
+  "@artistSongCount": {
+    "placeholders": {
+      "artist": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchTitle": "検索",
+  "searchPrompt": "曲名、アーティスト、アルバムで検索",
+  "sectionSongs": "曲",
+  "sectionArtists": "アーティスト",
+  "sectionAlbums": "アルバム",
+  "sectionPlaylists": "プレイリスト",
+  "queueUpNext": "次に再生",
+  "queueEmpty": "キューに曲がありません",
+  "removedFromQueue": "「{songName}」をキューから削除しました",
+  "@removedFromQueue": {
+    "placeholders": {
+      "songName": {
+        "type": "String"
+      }
+    }
+  },
+  "playNext": "次に再生",
+  "addedPlayNext": "「{songName}」を次に再生に追加しました",
+  "@addedPlayNext": {
+    "placeholders": {
+      "songName": {
+        "type": "String"
+      }
+    }
+  },
+  "addedToQueue": "キューに追加しました",
+  "addToPlaylist": "プレイリストに追加",
+  "addToPlaylistTitle": "プレイリストに追加",
+  "createNewPlaylist": "新規プレイリストを作成",
+  "existingPlaylists": "既存のプレイリスト",
+  "createPlaylist": "プレイリストを作成",
+  "playlistNameHint": "プレイリスト名を入力",
+  "playlistCreated": "プレイリストを作成しました",
+  "addedToPlaylist": "プレイリストに追加しました",
+  "editLyrics": "歌詞を編集",
+  "editLyricsLrc": "歌詞を編集 (LRC)",
+  "editManually": "手動で編集",
+  "adjustTiming": "タイミングの調整",
+  "lyricsFileNotFound": "歌詞ファイルが見つかりません",
+  "lyricsNoDestination": "歌詞ファイルの保存先がありません",
+  "lyricsSaved": "歌詞を保存しました",
+  "lyricsSaveFailed": "歌詞の保存に失敗しました: {error}",
+  "@lyricsSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "lrcHint": "[00:12.34]歌詞テキスト",
+  "editSongInfo": "曲データを編集",
+  "artworkLabel": "アートワーク",
+  "selectImage": "画像選択",
+  "changeImage": "画像変更",
+  "titleLabel": "タイトル",
+  "artistLabel": "アーティスト",
+  "albumLabel": "アルバム",
+  "songUpdated": "曲情報を更新しました",
+  "artworkSaveFailed": "サムネイル保存エラー: {error}",
+  "@artworkSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "metadataSaved": "メタデータを保存しました",
+  "categoryDetailPlay": "再生",
+  "categoryDetailShuffle": "シャッフル",
+  "settingsTitle": "設定",
+  "themeTitle": "テーマ設定",
+  "textColor": "文字色",
+  "backgroundColor": "背景色",
+  "selectTextColor": "文字色を選択",
+  "selectBackgroundColor": "背景色を選択",
+  "backgroundImage": "背景画像を設定",
+  "notSet": "未設定",
+  "removeBackgroundImage": "背景画像を削除",
+  "adjustBackgroundImage": "背景画像を調整",
+  "adjustBackgroundImageDesc": "タッチ操作で拡大縮小と位置調整ができます",
+  "cropThumbnail": "サムネイルをトリミング",
+  "adjustThumbnail": "サムネイル調整",
+  "backgroundOpacity": "背景画像の透明率",
+  "backgroundBlur": "背景画像のぼかし",
+  "language": "表示言語",
+  "selectLanguage": "表示言語を選択",
+  "languageSystem": "システム設定言語",
+  "languageJapanese": "日本語",
+  "languageEnglish": "English",
+  "languageKorean": "韓国語",
+  "languageGerman": "ドイツ語",
+  "languageFrench": "フランス語",
+  "languageChineseSimplified": "中国語（簡体）",
+  "languageChineseTraditional": "中国語（繁体）",
+  "languageSpanish": "スペイン語",
+  "languagePortugueseBrazil": "ポルトガル語（ブラジル）",
+  "languageRussian": "ロシア語",
+  "lyricsDisplayTitle": "歌詞表示",
+  "lyricsFontSize": "フォントサイズ: {size}",
+  "@lyricsFontSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "lyricsContextLines": "表示行数（現在行含む）: {count}",
+  "@lyricsContextLines": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "showArtworkBackground": "背景にサムネイルを表示",
+  "showArtworkBackgroundDesc": "歌詞表示時、背景にアルバムジャケットを表示",
+  "playbackTitle": "再生設定",
+  "skipSilence": "無音スキップ",
+  "skipSilenceDesc": "曲の始まりと終わりの無音部分をスキップします",
+  "silenceThreshold": "スキップ閾値: {ms}ms",
+  "@silenceThreshold": {
+    "placeholders": {
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
+  "localFilesTitle": "ローカルファイル",
+  "importFiles": "ファイルのインポート",
+  "importFolder": "フォルダのインポート",
+  "importing": "インポート進行中...",
+  "importCount": "{processed}/{total}件",
+  "@importCount": {
+    "placeholders": {
+      "processed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "clearLibraryTitle": "ライブラリをクリア",
+  "clearLibraryConfirm": "ローカルの全てのファイルを削除します。\nこの操作は元に戻せません。\n本当に削除しますか？",
+  "libraryCleared": "ライブラリをクリアしました",
+  "duplicateDetection": "重複検出",
+  "duplicateDetectionDesc": "古い方を削除",
+  "supportedFormatsTitle": "対応フォーマット",
+  "audioFormatsTitle": "音声フォーマット",
+  "lyricsFormatsTitle": "歌詞フォーマット",
+  "lyricsFormatsDesc": "LRC (時間同期型歌詞ファイル)",
+  "supportedQualityTitle": "対応音質",
+  "supportedQualityDesc": "ロスレス音質、Dolby Atmos空間オーディオ",
+  "lrcAdjustTitle": "LRC調整",
+  "selectSong": "曲を選択",
+  "offsetLabel": "オフセット: {value}",
+  "@offsetLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "applyChanges": "変更を適用",
+  "restore": "元に戻す",
+  "previewTitle": "プレビュー（先頭30行）",
+  "lrcFileNotFound": "LRCファイルが見つかりません",
+  "loadError": "読み込みエラー: {error}",
+  "@loadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "offset": "オフセット",
+  "apply": "変更",
+  "reset": "リセット",
+  "noLrcFileFound": "LRCファイルがありません",
+  "upNext": "次に再生",
+  "close": "閉じる",
+  "queueIsEmpty": "キューに曲がありません",
+  "selectASong": "曲を選択",
+  "play": "再生",
+  "applyChanges2": "変更を適用",
+  "restore2": "元に戻す",
+  "previewFirst30Lines": "プレビュー（先頭30行）",
+  "customColor": "カスタムカラー",
+  "darkMode": "ダークモード",
+  "appLanguage": "アプリの言語",
+  "followSystemSetting": "システム設定言語",
+  "save": "保存",
+  "cancel": "キャンセル",
+  "change": "変更",
+  "selectLanguage2": "言語を選択",
+  "confirm": "確認",
+  "execute": "実行",
+  "noData": "データがありません",
+  "error": "エラー",
+  "delete": "削除",
+  "search": "検索",
+  "artist": "アーティスト",
+  "tracks": "曲",
+  "albums": "アルバム",
+  "createPlaylist2": "プレイリストを作成",
+  "playpause": "再生/一時停止",
+  "next": "次へ",
+  "previous": "前へ",
+  "collection": "コレクション",
+  "artistTrackAlbum": "アーティスト、曲名、アルバム",
+  "welcome": "ようこそ",
+  "getStarted": "始める",
+  "showDebugInfo": "デバッグ情報を表示",
+  "clear": "クリア",
+  "clearCache": "キャッシュをクリア",
+  "yes": "はい",
+  "no": "いいえ",
+  "switchTheme": "テーマを切り替え",
+  "light": "ライト",
+  "dark": "ダーク",
+  "system": "システム",
+  "play2": "プレイ",
+  "playQueue": "再生キュー",
+  "remove": "削除",
+  "migrateSettingsFromOlderVersions": "以前のバージョンからの設定を移行します",
+  "tracks2": "曲数",
+  "anErrorOccurred": "エラーが発生しました",
+  "loading": "読み込み中...",
+  "offlineMode": "オフラインモード",
+  "downloaded": "ダウンロード済み",
+  "import": "インポート",
+  "export": "エクスポート",
+  "nowPlaying": "現在再生中",
+  "param": "{processed}/{total}件",
+  "@param": {
+    "placeholders": {
+      "processed": {},
+      "total": {}
+    }
+  },
+  "nowPlaying2": "Now Playing",
+  "ui": "ここにUIを重ねます",
+  "noSongPlaying": "No song playing",
+  "dolbyAtmos": "Dolby Atmos",
+  "k075": "0.75×",
+  "k09": "0.9×",
+  "k10": "1.0×",
+  "k11": "1.1×",
+  "k125": "1.25×",
+  "k15": "1.5×",
+  "k20": "2.0×",
+  "lrc": "LRC調整",
+  "videotitle": "「$videoTitle」のダウンロードを開始しました...",
+  "videotitle2": "「$videoTitle」のダウンロードが完了しました！",
+  "videotitle3": "「$videoTitle」のダウンロードに失敗しました",
+  "youtube": "YouTube音声抽出",
+  "youtubeurl": "クリップボードにYouTubeのURLが見つかりません",
+  "youtube2": "YouTubeから音声ファイル化",
+  "k320Kbps": "320 kbps",
+  "k441Khz": "44.1 kHz",
+  "mp3M4aFlacWavAiff": "MP3, M4A, FLAC, WAV, AIFF",
+  "noLyrics": "歌詞はありません",
+  "playbackSpeed": "再生速度",
+  "loadingLyrics": "歌詞を読み込み中...",
+  "artistLabel": "アーティスト名",
+  "backgroundCustomize": "背景カスタマイズ",
+  "selectImageFirst": "先に画像を選択してください",
+  "backgroundSet": "壁紙を設定しました",
+  "backgroundSetFailed": "壁紙の設定に失敗しました",
+  "thumbnailPreview": "サムネイルをプレビュー",
+  "apply": "適用",
+  "lossless": "ロスレス",
+  "audioConversionConfirm": "音声ファイル化の確認",
+  "confirmDownloadAudioFromVideo": "この動画から音声をダウンロードしますか？",
+  "cancel": "キャンセル",
+  "download": "ダウンロード",
+  "downloadCompletedFileNotFound": "ダウンロードは完了しましたが、ファイルが見つかりません",
+  "downloadCompletedPathUnknown": "ダウンロードは完了しましたが、ファイルパスが不明です",
+  "clipboardEmpty": "クリップボードが空です",
+  "error": "エラー",
+  "close": "閉じる",
+  "errorDetailsTitle": "エラー詳細",
+  "commonDetails": "詳細",
+  "outputformat": "出力形式",
+  "selectOutputFormat": "出力形式を選択",
+  "bitrate": "ビットレート",
+  "samplingRate": "サンプリングレート",
+  "adjustBackgroundImage": "背景画像を調整",
+  "e": "エラー: $e",
+  "m123": "クロップに失敗しました: $e",
+  "channelname": "チャンネル: $channelName",
+  "outputformat": "出力形式: $outputFormat",
+  "error4": "ダウンロードエラー: $error"
+}

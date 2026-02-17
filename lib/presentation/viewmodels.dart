@@ -8,10 +8,14 @@
 /// - YouTubeViewModel: YouTube音声抽出
 /// 
 import 'package:flutter/foundation.dart';
+import 'package:audio_service/audio_service.dart' as audio_service;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
+import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../domain/entities.dart';
 import '../domain/usecases.dart';
 import '../data/repositories.dart';
@@ -34,6 +38,7 @@ class PlayerState {
   final int currentQueueIndex;         // キュー内の現在位置
   final List<LrcLine> lrcLines;        // 歌詞データ
   final bool showLyrics;               // 歌詞表示ON/OFF
+  final bool autoScrollLyrics;         // 歌詞自動送り ON/OFF
 
   PlayerState({
     this.isPlaying = false,
@@ -47,6 +52,7 @@ class PlayerState {
     this.currentQueueIndex = -1,
     this.lrcLines = const [],
     this.showLyrics = false,
+    this.autoScrollLyrics = true,
   });
 
   PlayerState copyWith({
@@ -61,6 +67,7 @@ class PlayerState {
     int? currentQueueIndex,
     List<LrcLine>? lrcLines,
     bool? showLyrics,
+    bool? autoScrollLyrics,
   }) {
     return PlayerState(
       isPlaying: isPlaying ?? this.isPlaying,
@@ -74,34 +81,67 @@ class PlayerState {
       currentQueueIndex: currentQueueIndex ?? this.currentQueueIndex,
       lrcLines: lrcLines ?? this.lrcLines,
       showLyrics: showLyrics ?? this.showLyrics,
+      autoScrollLyrics: autoScrollLyrics ?? this.autoScrollLyrics,
     );
   }
 }
 
 class PlayerViewModel extends StateNotifier<PlayerState> {
+  final Ref _ref;
   late final AudioPlayer _audioPlayer;
+  ConcatenatingAudioSource? _queueSource;
   final AudioServiceManager _audioServiceManager = AudioServiceManager();
   bool _audioServiceInitialized = false;
+  bool _nativeSkipSilenceEnabled = false;
+  DateTime? _silenceSkipTrackStartAt;
+  bool _legacyStartSkipApplied = false;
+  bool _legacyEndSkipApplied = false;
+  StreamSubscription<audio_service.PlaybackState>? _audioServicePlaybackSub;
+  final Map<String, int> _durationOverrideCache = {};
 
-  PlayerViewModel() : super(PlayerState()) {
+  PlayerViewModel(this._ref) : super(PlayerState()) {
     _audioPlayer = AudioPlayer();
-    _initAudioService();
+    // Defer audio_service initialization to the first frame to avoid
+    // Activity/engine timing issues that prevent notification display.
 
     // プレーヤー状態の監視
     _audioPlayer.playerStateStream.listen((ps) {
       final playing = ps.playing && ps.processingState != ProcessingState.completed;
       state = state.copyWith(isPlaying: playing);
-      _updateAudioServicePlaybackState();
     });
 
     _audioPlayer.positionStream.listen((pos) {
       state = state.copyWith(position: pos);
-      _updateAudioServicePlaybackState();
+      _applySilenceSkipForCurrentSong();
+      _applyEndSilenceSkipIfNeeded(pos);
     });
 
     _audioPlayer.durationStream.listen((dur) {
-      if (dur != null) state = state.copyWith(duration: dur);
-      _updateAudioServicePlaybackState();
+      if (dur != null) {
+        state = state.copyWith(duration: dur);
+        final current = state.currentSong;
+        if (current != null && current.localPath != null && dur > Duration.zero) {
+          final diff = (dur - current.duration).abs();
+          final cached = _durationOverrideCache[current.id];
+          if (diff.inSeconds >= 1 && cached != dur.inMilliseconds) {
+            _durationOverrideCache[current.id] = dur.inMilliseconds;
+            final updatedSong = current.copyWith(duration: dur);
+            final updatedQueue = List<Song>.from(state.queue);
+            final idx = updatedQueue.indexWhere((s) => s.id == current.id);
+            if (idx >= 0) {
+              updatedQueue[idx] = updatedSong;
+            }
+            state = state.copyWith(currentSong: updatedSong, queue: updatedQueue);
+            _ref.read(libraryViewModelProvider.notifier).updateSongMetadata(
+              current.id,
+              {
+                'localPath': current.localPath,
+                'durationMs': dur.inMilliseconds,
+              },
+            );
+          }
+        }
+      }
     });
 
     _audioPlayer.currentIndexStream.listen((index) {
@@ -111,9 +151,19 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
           currentQueueIndex: index,
           currentSong: newSong,
         );
+        _silenceSkipTrackStartAt = null;
+        _legacyStartSkipApplied = false;
+        _legacyEndSkipApplied = false;
+        _setNativeSkipSilenceEnabled(false);
         _audioServiceManager.updateMediaItem(newSong);
+        if (newSong.lyricsPath == null || newSong.lyricsPath!.isEmpty) {
+          state = state.copyWith(lrcLines: const []);
+        }
       }
     });
+
+    // Attempt to restore saved queue from preferences after initialization
+    Future.microtask(() => _restoreQueueFromPrefs());
   }
 
   /// AudioService を初期化
@@ -123,31 +173,87 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
       await _audioServiceManager.init(_audioPlayer);
       _audioServiceInitialized = true;
       debugPrint('[PlayerViewModel] AudioService 初期化完了');
+      _audioServicePlaybackSub ??= _audioServiceManager.handler.playbackState.listen((ps) {
+        final playing = ps.playing && ps.processingState != audio_service.AudioProcessingState.completed;
+        if (state.isPlaying != playing) {
+          state = state.copyWith(isPlaying: playing);
+        }
+      });
     } catch (e) {
       debugPrint('[PlayerViewModel] AudioService 初期化エラー: $e');
     }
   }
 
-  /// AudioService の再生状態を更新
-  void _updateAudioServicePlaybackState() {
-    if (!_audioServiceInitialized) return;
+  Future<void> ensureAudioServiceInitialized() async {
+    await _initAudioService();
+    // 初期化後、現在のメディアアイテムがあれば通知へ反映しておく
     try {
-      _audioServiceManager.updatePlaybackState(
-        isPlaying: state.isPlaying,
-        position: state.position,
-        duration: state.duration,
-      );
+      if (state.currentSong != null) {
+        // AudioServiceManager 側で未初期化チェックを行うが、追加で安全確認
+        if (_audioServiceManager.isInitialized) {
+          await _audioServiceManager.updateMediaItem(state.currentSong!);
+          if (state.isPlaying) {
+            await _audioServiceManager.handler.play();
+          }
+        }
+      }
     } catch (e) {
-      debugPrint('[PlayerViewModel] AudioService 再生状態更新エラー: $e');
+      debugPrint('[PlayerViewModel] ensureAudioServiceInitialized post-update error: $e');
     }
   }
 
   /// 再生/停止の切り替え
-  void togglePlayPause() {
-    if (state.isPlaying) {
-      _audioPlayer.pause();
-    } else {
-      _audioPlayer.play();
+  Future<void> togglePlayPause() async {
+    // Do not optimistically flip UI state here. Rely on just_audio's
+    // playerStateStream listener to update `state.isPlaying` so UI stays
+    // consistent with the actual audio backend (fixes stop->play icon
+    // desync on certain native/notification workflows).
+    try {
+      if (Platform.isAndroid) {
+        final status = await Permission.notification.status;
+        if (!status.isGranted) {
+          await Permission.notification.request();
+        }
+      }
+      // Ensure audio_service is initialized before using its handler.
+      try {
+        await ensureAudioServiceInitialized();
+      } catch (e) {
+        debugPrint('[PlayerViewModel] ensureAudioServiceInitialized error: $e');
+      }
+
+      if (state.isPlaying) {
+        try {
+          if (_audioServiceInitialized) {
+            await _audioServiceManager.handler.pause();
+          } else {
+            await _audioPlayer.pause();
+          }
+        } catch (e) {
+          debugPrint('[PlayerViewModel] pause fallback error: $e');
+          await _audioPlayer.pause();
+        }
+      } else {
+        try {
+          if (_audioServiceInitialized) {
+            await _audioServiceManager.handler.play();
+          } else {
+            await _audioPlayer.play();
+          }
+          _applySilenceSkipForCurrentSong();
+        } catch (e) {
+          debugPrint('[PlayerViewModel] play fallback error: $e');
+          await _audioPlayer.play();
+          _applySilenceSkipForCurrentSong();
+        }
+      }
+      // Update UI state after action to avoid repeated taps.
+      state = state.copyWith(isPlaying: _audioPlayer.playing);
+      if (state.currentSong != null && _audioServiceManager.isInitialized) {
+        await _audioServiceManager.updateMediaItem(state.currentSong!);
+      }
+    } catch (e) {
+      debugPrint('[PlayerViewModel] togglePlayPause error: $e');
     }
   }
 
@@ -227,11 +333,16 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
   /// 再生位置をシーク
   void seekTo(Duration position) {
     final adjustedPosition = position > state.duration ? state.duration : (position.isNegative ? Duration.zero : position);
+    _silenceSkipTrackStartAt = adjustedPosition <= const Duration(milliseconds: 300)
+        ? DateTime.now()
+        : null;
+    _legacyStartSkipApplied = adjustedPosition > const Duration(milliseconds: 300);
+    _legacyEndSkipApplied = false;
     _audioPlayer.seek(adjustedPosition);
   }
 
   /// 再生キューを更新
-  void setQueue(List<Song> queue, {int? startIndex}) async {
+  void setQueue(List<Song> queue, {int? startIndex, bool autoPlay = false}) async {
     // 現在の再生状態を保存
     final currentSongId = state.currentSong?.id;
     final currentPosition = _audioPlayer.position;
@@ -261,15 +372,26 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
       isPlaying: false, // 一度停止状態にして、再生準備完了後に再開
       lrcLines: const [],
     );
+    _silenceSkipTrackStartAt = null;
+    _legacyStartSkipApplied = false;
+    _legacyEndSkipApplied = false;
+    _setNativeSkipSilenceEnabled(false);
 
-    // AudioService のメディアアイテムを更新
-    if (nextSong != null) {
-      _audioServiceManager.updateMediaItem(nextSong);
+    // AudioService を先に初期化し、メディアアイテムを通知へ反映
+    try {
+      await ensureAudioServiceInitialized();
+      if (nextSong != null && _audioServiceManager.isInitialized) {
+        await _audioServiceManager.updateQueue(queue);
+        await _audioServiceManager.updateMediaItem(nextSong);
+      }
+    } catch (e) {
+      debugPrint('[Player] ensureAudioServiceInitialized error in setQueue: $e');
     }
 
-    // 歌詞ファイルを読み込み
+    // 歌詞ファイルを読み込み（再生前に完了させることで、
+    // 自動再生時に歌詞がすぐ表示されるようにする）
     if (nextSong?.lyricsPath != null) {
-      _loadLyrics(nextSong!.lyricsPath!);
+      await _loadLyrics(nextSong!.lyricsPath!);
     }
 
     // Build audio source for just_audio
@@ -282,13 +404,13 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
 
     if (sources.isNotEmpty) {
       final concat = ConcatenatingAudioSource(children: sources);
+      _queueSource = concat;
       try {
-        await _audioPlayer.setAudioSource(concat, initialIndex: nextStartIndex);
-        
-        // 位置を復元（同じ曲の場合）
-        if (shouldKeepPosition && currentPosition.inMilliseconds > 0) {
-          await _audioPlayer.seek(currentPosition);
-        }
+        await _audioPlayer.setAudioSource(
+          concat,
+          initialIndex: nextStartIndex,
+          initialPosition: shouldKeepPosition ? currentPosition : null,
+        );
         
         // 既存の設定（シャッフル/リピート/速度）を反映
         _audioPlayer.setShuffleModeEnabled(state.shuffleMode == ShuffleMode.on);
@@ -303,17 +425,139 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
         _audioPlayer.setLoopMode(loopMode);
         _audioPlayer.setSpeed(state.playbackSpeed);
         
-        // 元々再生中だった場合は再開
-        if (isCurrentlyPlaying) {
-          await _audioPlayer.play();
+        // autoPlay が true の場合は再生を開始、または元々再生中だった場合は再開
+        if (autoPlay || isCurrentlyPlaying) {
+            try {
+            await ensureAudioServiceInitialized();
+            if (_audioServiceManager.isInitialized) {
+              await _audioServiceManager.handler.play();
+            } else {
+              await _audioPlayer.play();
+            }
+              // 無音スキップの適用（再生開始後に一度だけシーク）
+              _applySilenceSkipForCurrentSong();
+          } catch (e) {
+            debugPrint('[Player] autoplay via audio_service failed: $e');
+            await _audioPlayer.play();
+              _applySilenceSkipForCurrentSong();
+          }
         }
         
         // State の isPlaying を正確に反映
-        state = state.copyWith(isPlaying: isCurrentlyPlaying);
+        state = state.copyWith(isPlaying: autoPlay || isCurrentlyPlaying);
       } catch (e) {
         debugPrint('[Player] failed to set audio source: $e');
       }
+    } else {
+      _queueSource = null;
     }
+  }
+
+  void _setNativeSkipSilenceEnabled(bool enabled) {
+    if (_nativeSkipSilenceEnabled == enabled) return;
+    _nativeSkipSilenceEnabled = enabled;
+    _audioPlayer.setSkipSilenceEnabled(enabled).catchError((e) {
+      debugPrint('[Player] setSkipSilenceEnabled failed: $e');
+    });
+  }
+
+  void _applySilenceSkipForCurrentSong() {
+    try {
+      final settings = _ref.read(settingsViewModelProvider);
+      final thresholdMs = settings.silenceSkipThreshold;
+
+      if (!settings.silenceSkipEnabled || thresholdMs <= 0 || !state.isPlaying) {
+        _setNativeSkipSilenceEnabled(false);
+        return;
+      }
+
+      if (_audioPlayer.processingState != ProcessingState.ready) {
+        _setNativeSkipSilenceEnabled(false);
+        return;
+      }
+
+      final useLegacySkip = Platform.isAndroid && _isOldAndroidForNativeSkip();
+      if (useLegacySkip) {
+        _setNativeSkipSilenceEnabled(false);
+        final threshold = Duration(milliseconds: thresholdMs);
+        final duration = state.duration;
+        final position = state.position;
+
+        if (!_legacyStartSkipApplied && position <= const Duration(milliseconds: 250)) {
+          final safeEnd = duration > Duration.zero
+              ? Duration(milliseconds: (duration.inMilliseconds - 150).clamp(0, duration.inMilliseconds))
+              : threshold;
+          final target = safeEnd < threshold ? safeEnd : threshold;
+          if (target > position) {
+            _audioPlayer.seek(target).catchError((e) {
+              debugPrint('[Player] legacy start silence seek failed: $e');
+            });
+          }
+          _legacyStartSkipApplied = true;
+          return;
+        }
+
+        if (duration > Duration.zero && !_legacyEndSkipApplied) {
+          final remaining = duration - position;
+          if (remaining <= threshold) {
+            _legacyEndSkipApplied = true;
+            _audioPlayer.seek(duration).catchError((e) {
+              debugPrint('[Player] legacy end silence seek failed: $e');
+            });
+          }
+        }
+        return;
+      }
+
+      final threshold = Duration(milliseconds: thresholdMs);
+      final position = state.position;
+      final duration = state.duration;
+      _silenceSkipTrackStartAt ??= DateTime.now();
+      final elapsed = DateTime.now().difference(_silenceSkipTrackStartAt!);
+
+      // Guard: if native skip jumps too far during the very beginning,
+      // clamp to threshold and stop start-side skip immediately.
+      final startOvershoot = position - threshold;
+      final inEarlyPhase = elapsed <= (threshold + const Duration(seconds: 1));
+      if (inEarlyPhase && startOvershoot > const Duration(milliseconds: 700)) {
+        _setNativeSkipSilenceEnabled(false);
+        _audioPlayer.seek(threshold).catchError((e) {
+          debugPrint('[Player] start silence clamp seek failed: $e');
+        });
+        debugPrint('[Player] start silence overshoot clamped to ${threshold.inMilliseconds}ms');
+        return;
+      }
+
+      final inStartWindow = position <= threshold;
+      final inEndWindow = duration > Duration.zero && (duration - position) <= threshold;
+
+      // Enable native silence-skip only in the configured windows:
+      // - start: from 0s up to threshold
+      // - end: from (duration-threshold) to end
+      // This keeps the setting as "最大◯秒まで" while still stopping early
+      // when actual silence ends earlier (e.g. 5s設定で無音が3sなら3sで終了)。
+      _setNativeSkipSilenceEnabled(inStartWindow || inEndWindow);
+    } catch (e) {
+      debugPrint('[Player] silence skip error: $e');
+      _setNativeSkipSilenceEnabled(false);
+    }
+  }
+
+  bool _isOldAndroidForNativeSkip() {
+    try {
+      final version = Platform.operatingSystemVersion.toLowerCase();
+      final match = RegExp(r'android\s+(\d+)').firstMatch(version);
+      final major = int.tryParse(match?.group(1) ?? '');
+      if (major == null) return false;
+      return major <= 9;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  void _applyEndSilenceSkipIfNeeded(Duration position) {
+    // End-side behavior is unified in _applySilenceSkipForCurrentSong().
+    _applySilenceSkipForCurrentSong();
   }
 
   /// 歌詞ファイルを読み込み
@@ -330,7 +574,20 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
 
   /// 歌詞表示の切り替え
   void toggleLyrics() {
-    state = state.copyWith(showLyrics: !state.showLyrics);
+    final nextShow = !state.showLyrics;
+    state = state.copyWith(
+      showLyrics: nextShow,
+      autoScrollLyrics: true,
+    );
+  }
+
+  /// 歌詞を再読み込み（編集後に使用）
+  Future<void> loadLyricsFromPath(String? lyricsPath) async {
+    if (lyricsPath == null || lyricsPath.isEmpty) {
+      state = state.copyWith(lrcLines: const []);
+      return;
+    }
+    await _loadLyrics(lyricsPath);
   }
 
   /// 再生位置を更新（ネイティブ層からのコールバック想定）
@@ -344,7 +601,10 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
   }
 
   /// キューの並び替え
-  void reorderQueue(int oldIndex, int newIndex) {
+  Future<void> reorderQueue(int oldIndex, int newIndex) async {
+    final currentSongId = state.currentSong?.id;
+    final currentPosition = state.position;
+    final wasPlaying = state.isPlaying;
     final queue = List<Song>.from(state.queue);
     if (oldIndex < newIndex) {
       newIndex -= 1;
@@ -362,17 +622,47 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
       currentIndex += 1;
     }
 
+    final keepPosition = currentSongId != null && queue.isNotEmpty && queue[currentIndex].id == currentSongId;
     state = state.copyWith(
       queue: queue,
       currentQueueIndex: currentIndex,
+      position: keepPosition ? currentPosition : Duration.zero,
     );
 
-    // just_audioのキューも更新
-    _updateAudioSourceQueue(queue, currentIndex);
+    if (_queueSource != null) {
+      try {
+        await _queueSource!.move(oldIndex, newIndex);
+      } catch (e) {
+        debugPrint('[Player] failed to move queue item: $e');
+        await _updateAudioSourceQueue(
+          queue,
+          currentIndex,
+          position: keepPosition ? currentPosition : Duration.zero,
+          resumeIfPlaying: wasPlaying,
+        );
+      }
+    } else {
+      await _updateAudioSourceQueue(
+        queue,
+        currentIndex,
+        position: keepPosition ? currentPosition : Duration.zero,
+        resumeIfPlaying: wasPlaying,
+      );
+    }
+    // 通知/ロック画面のキューも更新
+    ensureAudioServiceInitialized().then((_) {
+      if (_audioServiceManager.isInitialized) {
+        _audioServiceManager.updateQueue(queue);
+      }
+    });
+    _saveQueueToPrefs();
   }
 
   /// キューから曲を削除
-  void removeFromQueue(int index) {
+  Future<void> removeFromQueue(int index) async {
+    final currentSongId = state.currentSong?.id;
+    final currentPosition = state.position;
+    final wasPlaying = state.isPlaying;
     final queue = List<Song>.from(state.queue);
     queue.removeAt(index);
 
@@ -387,21 +677,60 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
       }
     }
 
+    final nextIndex = currentIndex >= 0 && queue.isNotEmpty ? currentIndex : 0;
+    final nextSong = queue.isNotEmpty ? queue[nextIndex] : null;
+    final keepPosition = currentSongId != null && nextSong != null && nextSong.id == currentSongId;
     state = state.copyWith(
       queue: queue,
-      currentQueueIndex: currentIndex >= 0 && queue.isNotEmpty ? currentIndex : 0,
-      currentSong: queue.isNotEmpty ? queue[currentIndex >= 0 ? currentIndex : 0] : null,
+      currentQueueIndex: nextIndex,
+      currentSong: nextSong,
+      position: keepPosition ? currentPosition : Duration.zero,
     );
 
     if (queue.isEmpty) {
-      _audioPlayer.stop();
+      await _audioPlayer.stop();
+      state = state.copyWith(isPlaying: false);
     } else {
-      _updateAudioSourceQueue(queue, currentIndex >= 0 ? currentIndex : 0);
+      if (_queueSource != null) {
+        try {
+          await _queueSource!.removeAt(index);
+        } catch (e) {
+          debugPrint('[Player] failed to remove queue item: $e');
+          await _updateAudioSourceQueue(
+            queue,
+            nextIndex,
+            position: keepPosition ? currentPosition : Duration.zero,
+            resumeIfPlaying: wasPlaying,
+          );
+        }
+      } else {
+        await _updateAudioSourceQueue(
+          queue,
+          nextIndex,
+          position: keepPosition ? currentPosition : Duration.zero,
+          resumeIfPlaying: wasPlaying,
+        );
+      }
     }
+    // 通知/ロック画面のキューとメディアアイテムを更新
+    await ensureAudioServiceInitialized();
+    if (_audioServiceManager.isInitialized) {
+      await _audioServiceManager.updateQueue(queue);
+      if (state.currentSong != null) {
+        await _audioServiceManager.updateMediaItem(state.currentSong!);
+      }
+    }
+    _saveQueueToPrefs();
   }
 
   /// キュー内の指定位置にスキップ
   void skipToQueueItem(int index) {
+    if (index == state.currentQueueIndex) {
+      if (!state.isPlaying) {
+        togglePlayPause();
+      }
+      return;
+    }
     if (index >= 0 && index < state.queue.length) {
       state = state.copyWith(
         currentQueueIndex: index,
@@ -409,23 +738,72 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
         isPlaying: true,
       );
       _audioPlayer.seek(Duration.zero, index: index);
-      _audioPlayer.play();
+      ensureAudioServiceInitialized().then((_) async {
+        try {
+          if (_audioServiceManager.isInitialized) {
+            await _audioServiceManager.updateMediaItem(state.queue[index]);
+            await _audioServiceManager.handler.play();
+          } else {
+            await _audioPlayer.play();
+          }
+        } catch (e) {
+          debugPrint('[Player] skipToQueueItem play error: $e');
+          await _audioPlayer.play();
+        }
+      });
     }
   }
 
   /// 次に再生に追加
-  void addToQueue(Song song) {
+  Future<void> addToQueue(Song song) async {
+    final currentPosition = state.position;
+    final wasPlaying = state.isPlaying;
     final queue = List<Song>.from(state.queue);
     final insertIndex = state.currentQueueIndex + 1;
     queue.insert(insertIndex, song);
 
     state = state.copyWith(queue: queue);
 
-    _updateAudioSourceQueue(queue, state.currentQueueIndex);
+    if (_queueSource != null) {
+      try {
+        if (song.localPath != null) {
+          await _queueSource!.insert(
+            insertIndex,
+            AudioSource.uri(Uri.file(song.localPath!)),
+          );
+        }
+      } catch (e) {
+        debugPrint('[Player] failed to insert queue item: $e');
+        await _updateAudioSourceQueue(
+          queue,
+          state.currentQueueIndex,
+          position: currentPosition,
+          resumeIfPlaying: wasPlaying,
+        );
+      }
+    } else {
+      await _updateAudioSourceQueue(
+        queue,
+        state.currentQueueIndex,
+        position: currentPosition,
+        resumeIfPlaying: wasPlaying,
+      );
+    }
+    ensureAudioServiceInitialized().then((_) {
+      if (_audioServiceManager.isInitialized) {
+        _audioServiceManager.updateQueue(queue);
+      }
+    });
+    _saveQueueToPrefs();
   }
 
   /// just_audioのキューを更新
-  void _updateAudioSourceQueue(List<Song> queue, int currentIndex) {
+  Future<void> _updateAudioSourceQueue(
+    List<Song> queue,
+    int currentIndex, {
+    Duration? position,
+    bool resumeIfPlaying = false,
+  }) async {
     final sources = <AudioSource>[];
     for (final s in queue) {
       if (s.localPath != null) {
@@ -435,15 +813,84 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
 
     if (sources.isNotEmpty) {
       final concat = ConcatenatingAudioSource(children: sources);
-      _audioPlayer.setAudioSource(concat, initialIndex: currentIndex).catchError((e) {
+      _queueSource = concat;
+      try {
+        await _audioPlayer.setAudioSource(
+          concat,
+          initialIndex: currentIndex,
+          initialPosition: position,
+        );
+        if (resumeIfPlaying) {
+          await ensureAudioServiceInitialized();
+          if (_audioServiceManager.isInitialized) {
+            await _audioServiceManager.handler.play();
+          } else {
+            await _audioPlayer.play();
+          }
+        }
+      } catch (e) {
         debugPrint('[Player] failed to update audio source: $e');
-      });
+      }
+    } else {
+      _queueSource = null;
     }
+    _saveQueueToPrefs();
+  }
+
+  // Persist queue (song ids) and current index to SharedPreferences
+  Future<void> _saveQueueToPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final ids = state.queue.map((s) => s.id).toList();
+      await prefs.setStringList('saved_queue_ids', ids);
+      await prefs.setInt('saved_queue_index', state.currentQueueIndex);
+      debugPrint('[Player] saved queue to prefs: ${ids.length} items');
+    } catch (e) {
+      debugPrint('[Player] failed to save queue prefs: $e');
+    }
+  }
+
+  Future<void> _restoreQueueFromPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final ids = prefs.getStringList('saved_queue_ids');
+      final idx = prefs.getInt('saved_queue_index') ?? 0;
+      if (ids == null || ids.isEmpty) return;
+      // Try to map saved ids to existing library songs
+      final libState = _ref.read(libraryViewModelProvider);
+      final available = libState.songs;
+      final restored = <Song>[];
+      for (final id in ids) {
+        final matches = available.where((x) => x.id == id).toList();
+        if (matches.isNotEmpty) restored.add(matches.first);
+      }
+      if (restored.isNotEmpty) {
+        // Use setQueue to restore internal audio player and state
+        setQueue(restored, startIndex: idx, autoPlay: false);
+        debugPrint('[Player] restored queue from prefs: ${restored.length} items');
+      }
+    } catch (e) {
+      debugPrint('[Player] failed to restore queue prefs: $e');
+    }
+  }
+
+  /// 歌詞自動送り機能の ON/OFF 切り替え
+  void toggleAutoScrollLyrics() {
+    // 要件: 自動送りを常時有効にする
+    state = state.copyWith(autoScrollLyrics: true);
+  }
+
+  /// 歌詞自動送り機能を有効にする
+  void setAutoScrollLyrics(bool enabled) {
+    state = state.copyWith(autoScrollLyrics: true);
   }
 
   @override
   void dispose() {
+    _silenceSkipTrackStartAt = null;
+    _setNativeSkipSilenceEnabled(false);
     _audioServiceManager.stop();
+    _audioServicePlaybackSub?.cancel();
     _audioPlayer.dispose();
     super.dispose();
   }
@@ -487,8 +934,10 @@ class LibraryState {
 
 class LibraryViewModel extends StateNotifier<LibraryState> {
   final LibraryUseCase _libraryUseCase;
+  final LocalFileImportUseCase _localImportUseCase;
+  bool _isBackfillRunning = false;
 
-  LibraryViewModel(this._libraryUseCase)
+  LibraryViewModel(this._libraryUseCase, this._localImportUseCase)
       : super(LibraryState()) {
     loadLibrary();
   }
@@ -504,6 +953,7 @@ class LibraryViewModel extends StateNotifier<LibraryState> {
         ascending: state.sortAscending,
       );
       state = state.copyWith(songs: sorted, isLoading: false);
+      _triggerLazyBackfill();
     } catch (e) {
       state = state.copyWith(error: e.toString(), isLoading: false);
     }
@@ -520,10 +970,19 @@ class LibraryViewModel extends StateNotifier<LibraryState> {
       );
       state = state.copyWith(songs: sorted);
       print('[Library] ライブラリ更新完了: ${sorted.length}曲');
+      _triggerLazyBackfill();
     } catch (e) {
       print('[Library] ライブラリ更新エラー: $e');
       state = state.copyWith(error: e.toString());
     }
+  }
+
+  void _triggerLazyBackfill() {
+    if (_isBackfillRunning) return;
+    _isBackfillRunning = true;
+    _localImportUseCase.backfillUnparsed(limit: 200, batchSize: 30).whenComplete(() {
+      _isBackfillRunning = false;
+    });
   }
 
   /// ソートを変更
@@ -540,6 +999,17 @@ class LibraryViewModel extends StateNotifier<LibraryState> {
       sortBy: sortBy,
       sortAscending: newAscending,
     );
+  }
+
+  /// 既存ライブラリに重複検出を適用
+  Future<int> applyDuplicateDetectionToLibrary() async {
+    try {
+      final removed = await _localImportUseCase.applyDuplicateDetectionToLibrary();
+      await refreshLibrary();
+      return removed;
+    } catch (_) {
+      return 0;
+    }
   }
 
   /// 楽曲メタデータを更新
@@ -764,7 +1234,14 @@ class SettingsViewModel extends StateNotifier<AppSettings> {
 
   /// 設定を読み込む
   Future<void> _loadSettings() async {
-    state = await _settingsRepository.getSettings();
+    final loaded = await _settingsRepository.getSettings();
+    // 無音スキップは現時点で安定性優先のため強制OFF
+    if (loaded.silenceSkipEnabled) {
+      state = loaded.copyWith(silenceSkipEnabled: false);
+      await _settingsRepository.saveSettings(state);
+      return;
+    }
+    state = loaded;
   }
 
   /// YouTube設定を更新
@@ -784,174 +1261,33 @@ class SettingsViewModel extends StateNotifier<AppSettings> {
     state = state.copyWith(lyricsSettings: settings);
     await _settingsRepository.saveSettings(state);
   }
-}
 
-// ============================================================================
-// YouTube音声抽出ViewModel
-// ============================================================================
-
-class YouTubeState {
-  final bool isLoading;
-  final String? error;
-  final String? downloadProgress;    // "ダウンロード中... 50%"
-
-  YouTubeState({
-    this.isLoading = false,
-    this.error,
-    this.downloadProgress,
-  });
-
-  YouTubeState copyWith({
-    bool? isLoading,
-    String? error,
-    String? downloadProgress,
-  }) {
-    return YouTubeState(
-      isLoading: isLoading ?? this.isLoading,
-      error: error ?? this.error,
-      downloadProgress: downloadProgress ?? this.downloadProgress,
+  /// テーマ色を更新
+  Future<void> updateThemeColors({int? backgroundColor, int? textColor}) async {
+    state = state.copyWith(
+      themeBackgroundColor: backgroundColor ?? state.themeBackgroundColor,
+      themeTextColor: textColor ?? state.themeTextColor,
     );
+    await _settingsRepository.saveSettings(state);
+  }
+
+  /// 無音スキップ設定を更新
+  Future<void> updateSilenceSkip({required bool enabled, required int threshold}) async {
+    state = state.copyWith(
+      silenceSkipEnabled: enabled,
+      silenceSkipThreshold: threshold,
+    );
+    await _settingsRepository.saveSettings(state);
+  }
+
+  /// 設定全体を更新
+  Future<void> updateSettings(AppSettings settings) async {
+    state = settings;
+    await _settingsRepository.saveSettings(state);
   }
 }
 
-class YouTubeViewModel extends StateNotifier<YouTubeState> {
-  final YouTubeDownloadUseCase _youtubeUseCase;
-
-  YouTubeViewModel(this._youtubeUseCase) : super(YouTubeState());
-
-  /// YouTube動画の情報を取得（ダイアログ表示用）
-  Future<dynamic> getVideoInfo(String youtubeUrl) async {
-    try {
-      final info = await _youtubeUseCase.getVideoInfo(youtubeUrl);
-      return info;
-    } catch (e) {
-      state = state.copyWith(error: e.toString());
-      return null;
-    }
-  }
-
-  /// YouTube動画から音声をダウンロード・変換・永続化
-  Future<Song?> downloadFromYouTube(
-    String youtubeUrl,
-    String outputFormat,
-    String outputPath,
-    int bitrate,
-  ) async {
-    state = state.copyWith(isLoading: true, error: null);
-    try {
-      // 1. キャッシュディレクトリにダウンロード
-      debugPrint('[ViewModel] ダウンロード開始処理');
-      final cachePath = await _getApplicationCachePath();
-      debugPrint('[ViewModel] キャッシュパス: $cachePath');
-      
-      debugPrint('[ViewModel] YouTubeUseCase.downloadAndConvert() 呼び出し');
-      final song = await _youtubeUseCase.downloadAndConvert(
-        youtubeUrl,
-        outputFormat,
-        cachePath,
-        bitrate,
-      );
-      debugPrint('[ViewModel] YouTubeUseCase 戻り値: ${song?.title}');
-
-      if (song == null) {
-        debugPrint('[ViewModel] エラー: ダウンロード失敗');
-        state = state.copyWith(
-          error: 'ダウンロード失敗',
-          isLoading: false,
-        );
-        return null;
-      }
-
-      // 2. キャッシュから永続ストレージへ移動
-      debugPrint('[ViewModel] 永続化開始: ${song.localPath}');
-      final persistentPath = await _copyFileToPersistentStorage(
-        song.localPath ?? '',
-        outputFormat,
-      );
-
-      if (persistentPath == null) {
-        state = state.copyWith(
-          error: 'ファイル永続化失敗',
-          isLoading: false,
-        );
-        return null;
-      }
-
-      // 3. Song エンティティを更新
-      final persistedSong = Song(
-        id: song.id,
-        title: song.title,
-        artist: song.artist,
-        album: song.album,
-        duration: song.duration,
-        fileFormat: song.fileFormat,
-        localPath: persistentPath,
-        isLocal: true,
-      );
-
-      state = state.copyWith(isLoading: false);
-      return persistedSong;
-    } catch (e) {
-      state = state.copyWith(error: e.toString(), isLoading: false);
-      return null;
-    }
-  }
-
-  /// キャッシュディレクトリパスを取得
-  Future<String> _getApplicationCachePath() async {
-    final cacheDir = await getTemporaryDirectory();
-    return cacheDir.path;
-  }
-
-  /// ファイルをキャッシュから永続ストレージへコピー（Android 11+ 対応）
-  /// 共有ストレージ (Music) へのアクセス権限がない場合は、
-  /// アプリ専用ディレクトリ (Documents) に保存
-  Future<String?> _copyFileToPersistentStorage(
-    String sourceFilePath,
-    String outputFormat,
-  ) async {
-    try {
-      // アプリ専用の Documents ディレクトリを取得
-      // これはアンインストール時に削除されるが、通常の操作で削除されない
-      final appDocDir = await getApplicationDocumentsDirectory();
-      
-      // Music サブディレクトリを作成
-      final musicDir = Directory('${appDocDir.path}/Music');
-      if (!await musicDir.exists()) {
-        await musicDir.create(recursive: true);
-      }
-
-      final sourceFile = File(sourceFilePath);
-      if (!await sourceFile.exists()) {
-        return null;
-      }
-
-      // ファイル名を生成
-      final fileName = sourceFile.path.split('/').last;
-      final destinationPath = '${musicDir.path}/$fileName';
-      
-      // ファイルをコピー
-      final copiedFile = await sourceFile.copy(destinationPath);
-      
-      print('[YouTube] ファイル永続化成功: $destinationPath');
-      return copiedFile.path;
-    } catch (e) {
-      print('[YouTube] ファイル永続化エラー: $e');
-      return null;
-    }
-  }
-
-  /// URL検証
-  Future<bool> validateURL(String url) async {
-    try {
-      final info = await _youtubeUseCase.getVideoInfo(url);
-      return info != null;
-    } catch (e) {
-      state = state.copyWith(error: e.toString());
-      return false;
-    }
-  }
-}
+// YouTubeダウンロード機能は削除されました。関連ViewModelは廃止しています。
 
 // ============================================================================
 // ローカルファイル読込ViewModel
@@ -959,24 +1295,44 @@ class YouTubeViewModel extends StateNotifier<YouTubeState> {
 
 class LocalImportState {
   final bool isLoading;
+  final bool isImporting;
   final String? error;
   final List<Song> importedSongs;
+  final int total;
+  final int processed;
+  final String? statusMessage;
+  final ImportResult? lastResult;
 
   LocalImportState({
     this.isLoading = false,
+    this.isImporting = false,
     this.error,
     this.importedSongs = const [],
+    this.total = 0,
+    this.processed = 0,
+    this.statusMessage,
+    this.lastResult,
   });
 
   LocalImportState copyWith({
     bool? isLoading,
+    bool? isImporting,
     String? error,
     List<Song>? importedSongs,
+    int? total,
+    int? processed,
+    String? statusMessage,
+    ImportResult? lastResult,
   }) {
     return LocalImportState(
       isLoading: isLoading ?? this.isLoading,
+      isImporting: isImporting ?? this.isImporting,
       error: error ?? this.error,
       importedSongs: importedSongs ?? this.importedSongs,
+      total: total ?? this.total,
+      processed: processed ?? this.processed,
+      statusMessage: statusMessage ?? this.statusMessage,
+      lastResult: lastResult ?? this.lastResult,
     );
   }
 }
@@ -1029,6 +1385,105 @@ class LocalImportViewModel extends StateNotifier<LocalImportState> {
       return false;
     }
   }
+
+  /// 複数ファイルのバッチインポート
+  Future<ImportResult> importFilesBatched(
+    List<String> filePaths, {
+    Map<String, String?>? lyricsByPath,
+    int batchSize = 30,
+    bool? lazyParse,
+    bool duplicateDetection = false,
+  }) async {
+    state = state.copyWith(
+      isImporting: true,
+      isLoading: true,
+      error: null,
+      processed: 0,
+      total: filePaths.length,
+      statusMessage: 'インポート準備中...'
+    );
+
+    try {
+      final originalTotal = filePaths.length;
+      final result = await _importUseCase.importAudioFilesBatched(
+        filePaths,
+        lyricsByPath: lyricsByPath,
+        batchSize: batchSize,
+        lazyParse: lazyParse ?? false,
+        duplicateDetection: duplicateDetection,
+        onProgress: (progress) {
+          state = state.copyWith(
+            processed: progress.processed,
+            total: originalTotal,
+            statusMessage: progress.message,
+          );
+        },
+      );
+
+      state = state.copyWith(
+        isImporting: false,
+        isLoading: false,
+        lastResult: result,
+        statusMessage: 'インポート完了',
+      );
+      return result;
+    } catch (e) {
+      state = state.copyWith(
+        isImporting: false,
+        isLoading: false,
+        error: e.toString(),
+      );
+      return const ImportResult(total: 0, imported: 0, skipped: 0, failed: 0, lazyParse: false);
+    }
+  }
+
+  /// フォルダのバッチインポート
+  Future<ImportResult> importFolderBatched(
+    String folderPath, {
+    int batchSize = 30,
+    bool? lazyParse,
+    bool duplicateDetection = false,
+  }) async {
+    state = state.copyWith(
+      isImporting: true,
+      isLoading: true,
+      error: null,
+      processed: 0,
+      total: 0,
+      statusMessage: 'フォルダをスキャン中...'
+    );
+
+    try {
+      final result = await _importUseCase.importAudioFolderBatched(
+        folderPath,
+        batchSize: batchSize,
+        lazyParse: lazyParse,
+        duplicateDetection: duplicateDetection,
+        onProgress: (progress) {
+          state = state.copyWith(
+            processed: progress.processed,
+            total: progress.total,
+            statusMessage: progress.message,
+          );
+        },
+      );
+
+      state = state.copyWith(
+        isImporting: false,
+        isLoading: false,
+        lastResult: result,
+        statusMessage: 'インポート完了',
+      );
+      return result;
+    } catch (e) {
+      state = state.copyWith(
+        isImporting: false,
+        isLoading: false,
+        error: e.toString(),
+      );
+      return const ImportResult(total: 0, imported: 0, skipped: 0, failed: 0, lazyParse: false);
+    }
+  }
 }
 
 // ============================================================================
@@ -1037,20 +1492,22 @@ class LocalImportViewModel extends StateNotifier<LocalImportState> {
 
 final playerViewModelProvider =
     StateNotifierProvider<PlayerViewModel, PlayerState>((ref) {
-  return PlayerViewModel();
+  return PlayerViewModel(ref);
 });
 
 final libraryViewModelProvider =
     StateNotifierProvider<LibraryViewModel, LibraryState>((ref) {
   final musicRepo = ref.watch(musicRepositoryProvider);
   final useCase = LibraryUseCase(musicRepo);
-  return LibraryViewModel(useCase);
+  final localAudioService = ref.watch(localAudioServiceProvider);
+  final importUseCase = LocalFileImportUseCase(localAudioService, musicRepo);
+  return LibraryViewModel(useCase, importUseCase);
 });
 
 final playlistViewModelProvider =
     StateNotifierProvider<PlaylistViewModel, PlaylistState>((ref) {
   final playlistRepo = ref.watch(playlistRepositoryProvider);
-  final useCase = PlaylistUseCase(playlistRepo, ref.watch(musicRepositoryProvider));
+  final useCase = PlaylistUseCase(playlistRepo);
   return PlaylistViewModel(useCase);
 });
 
@@ -1066,19 +1523,12 @@ final settingsViewModelProvider =
   return SettingsViewModel(settingsRepo);
 });
 
-final youtubeViewModelProvider =
-    StateNotifierProvider<YouTubeViewModel, YouTubeState>((ref) {
-  final youtubeService = ref.watch(youtubeServiceProvider);
-  final musicRepo = ref.watch(musicRepositoryProvider);
-  final useCase = YouTubeDownloadUseCase(youtubeService, musicRepo);
-  return YouTubeViewModel(useCase);
-});
+// YouTubeダウンロード機能は削除されました。
 
 final localImportViewModelProvider =
     StateNotifierProvider<LocalImportViewModel, LocalImportState>((ref) {
   final audioService = ref.watch(localAudioServiceProvider);
   final musicRepo = ref.watch(musicRepositoryProvider);
-  final settingsRepo = ref.watch(settingsRepositoryProvider);
-  final useCase = LocalFileImportUseCase(audioService, musicRepo, settingsRepo);
+  final useCase = LocalFileImportUseCase(audioService, musicRepo);
   return LocalImportViewModel(useCase);
 });

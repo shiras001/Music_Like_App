@@ -5,8 +5,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:music_like/l10n/app_localizations.dart';
 import '../domain/entities.dart';
 import '../data/lrc_service.dart';
+import 'viewmodels.dart';
 
 /// フルプレイヤー画面
 /// タップで表示/非表示を切り替え
@@ -63,25 +65,37 @@ class _FullPlayerScreenState extends ConsumerState<FullPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final playerState = ref.watch(playerViewModelProvider);
+    final screenHeight = MediaQuery.of(context).size.height;
+    final media = MediaQuery.of(context);
+    final viewportHeight = media.size.height - media.padding.top - media.padding.bottom - kToolbarHeight;
+    final isCompact = viewportHeight < 700;
+    final isVeryCompact = viewportHeight < 620;
+    final artworkSize = (screenHeight * 0.34).clamp(180.0, 280.0);
+    final artworkPadding = screenHeight < 720 ? 10.0 : 16.0;
+    final sectionSpacing = isVeryCompact ? 8.0 : (isCompact ? 12.0 : 24.0);
+    final lyricsHeight = (viewportHeight * (isVeryCompact ? 0.14 : isCompact ? 0.18 : 0.24)).clamp(80.0, 150.0);
+    final controlIconSize = isVeryCompact ? 40.0 : 48.0;
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Now Playing'),
+        title: Text(AppLocalizations.of(context)!.nowPlaying2),
         centerTitle: true,
-        backgroundColor: Colors.black.withOpacity(0.3),
+        backgroundColor: Colors.black.withAlpha((0.3 * 255).round()),
         elevation: 0,
       ),
-      body: SingleChildScrollView(
+      body: SafeArea(
         child: Column(
           children: [
             // アルバムアート
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(artworkPadding),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
-                  width: 280,
-                  height: 280,
+                  width: artworkSize,
+                  height: artworkSize,
                   color: Colors.grey.shade800,
                   child: widget.song.artworkUrl != null
                       ? Image.network(
@@ -97,13 +111,13 @@ class _FullPlayerScreenState extends ConsumerState<FullPlayerScreen> {
 
             // 曲情報
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: isCompact ? 12 : 16),
               child: Column(
                 children: [
                   Text(
                     widget.song.title,
-                    style: const TextStyle(
-                      fontSize: 18,
+                    style: TextStyle(
+                      fontSize: isCompact ? 16 : 18,
                       fontWeight: FontWeight.bold,
                     ),
                     textAlign: TextAlign.center,
@@ -114,7 +128,7 @@ class _FullPlayerScreenState extends ConsumerState<FullPlayerScreen> {
                   Text(
                     widget.song.artist,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: isCompact ? 13 : 14,
                       color: Colors.grey.shade400,
                     ),
                     textAlign: TextAlign.center,
@@ -123,7 +137,7 @@ class _FullPlayerScreenState extends ConsumerState<FullPlayerScreen> {
                   Text(
                     widget.song.album,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: isCompact ? 11 : 12,
                       color: Colors.grey.shade600,
                     ),
                     textAlign: TextAlign.center,
@@ -132,25 +146,25 @@ class _FullPlayerScreenState extends ConsumerState<FullPlayerScreen> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            SizedBox(height: sectionSpacing),
 
             // 歌詞表示エリア（LRCがある場合）
             if (_lrcLines.isNotEmpty)
-              _buildLyricsDisplay()
+              _buildLyricsDisplay(lyricsHeight)
             else
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(isCompact ? 8 : 16),
                 child: Text(
                   '歌詞はありません',
                   style: TextStyle(color: Colors.grey.shade600),
                 ),
               ),
 
-            const SizedBox(height: 24),
+            SizedBox(height: sectionSpacing),
 
             // プログレスバー
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: isCompact ? 12 : 16),
               child: Column(
                 children: [
                   Slider(
@@ -189,11 +203,11 @@ class _FullPlayerScreenState extends ConsumerState<FullPlayerScreen> {
               ),
             ),
 
-            const SizedBox(height: 16),
+            SizedBox(height: isCompact ? 8 : 16),
 
             // 再生制御ボタン
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: isCompact ? 12 : 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -204,10 +218,10 @@ class _FullPlayerScreenState extends ConsumerState<FullPlayerScreen> {
                     },
                   ),
                   IconButton(
-                    icon: const Icon(Icons.play_arrow),
-                    iconSize: 48,
+                    icon: Icon(playerState.isPlaying ? Icons.pause : Icons.play_arrow),
+                    iconSize: controlIconSize,
                     onPressed: () {
-                      debugPrint('[Player] 再生/一時停止');
+                      ref.read(playerViewModelProvider.notifier).togglePlayPause();
                     },
                   ),
                   IconButton(
@@ -220,11 +234,11 @@ class _FullPlayerScreenState extends ConsumerState<FullPlayerScreen> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            SizedBox(height: sectionSpacing),
 
             // 倍速ボタン
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: isCompact ? 12 : 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -235,7 +249,7 @@ class _FullPlayerScreenState extends ConsumerState<FullPlayerScreen> {
                       color: Colors.grey.shade600,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: isCompact ? 6 : 8),
                   Wrap(
                     spacing: 8,
                     children: [1.0, 1.25, 1.5, 2.0].map((speed) {
@@ -244,10 +258,10 @@ class _FullPlayerScreenState extends ConsumerState<FullPlayerScreen> {
                         label: Text('${speed}x'),
                         selected: isSelected,
                         onSelected: (_) => _onPlaybackSpeedTap(speed),
-                        backgroundColor: Colors.grey.shade800,
-                        selectedColor: const Color(0xFFFF2D55),
+                        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        selectedColor: Theme.of(context).colorScheme.primary,
                         labelStyle: TextStyle(
-                          color: isSelected ? Colors.white : Colors.grey.shade300,
+                          color: isSelected ? Theme.of(context).textTheme.bodyMedium?.color : Theme.of(context).colorScheme.onSurface.withAlpha((0.6 * 255).round()),
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         ),
                       );
@@ -257,7 +271,7 @@ class _FullPlayerScreenState extends ConsumerState<FullPlayerScreen> {
               ),
             ),
 
-            const SizedBox(height: 32),
+            SizedBox(height: isCompact ? 12 : 24),
           ],
         ),
       ),
@@ -265,11 +279,11 @@ class _FullPlayerScreenState extends ConsumerState<FullPlayerScreen> {
   }
 
   /// 歌詞表示ウィジェット
-  Widget _buildLyricsDisplay() {
+  Widget _buildLyricsDisplay(double height) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(12),
-      height: 150,
+      height: height,
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade700),
         borderRadius: BorderRadius.circular(8),
@@ -290,7 +304,7 @@ class _FullPlayerScreenState extends ConsumerState<FullPlayerScreen> {
                   _lrcLines[index].lyrics,
                   style: TextStyle(
                     color: isCurrentLine
-                        ? const Color(0xFFFF2D55)
+                        ? Theme.of(context).colorScheme.primary
                         : Colors.grey.shade400,
                     fontSize: isCurrentLine ? 16 : 14,
                     fontWeight: isCurrentLine ? FontWeight.bold : FontWeight.normal,

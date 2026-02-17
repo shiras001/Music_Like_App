@@ -1,0 +1,305 @@
+{
+  "@@locale": "es",
+  "appTitle": "Music Like",
+  "commonCancel": "Cancelar",
+  "commonSave": "Guardar",
+  "commonClose": "Cerrar",
+  "commonDetails": "Detalles",
+  "commonDelete": "Eliminar",
+  "commonApply": "Aplicar",
+  "commonReset": "Restablecer",
+  "commonPlay": "Reproducir",
+  "commonShuffle": "Aleatorio",
+  "commonSearch": "Buscar",
+  "commonSort": "Ordenar",
+  "commonEdit": "Editar",
+  "commonRetry": "Reintentar",
+  "commonSaveChanges": "Guardar",
+  "tabSongs": "Canciones",
+  "tabArtists": "Artistas",
+  "tabAlbums": "Álbumes",
+  "tabPlaylists": "Listas",
+  "drawerSettings": "Configuración",
+  "drawerEditCategories": "Editar categorías",
+  "drawerSort": "Ordenar",
+  "libraryLoadFailed": "No se pudo cargar la biblioteca",
+  "libraryReload": "Recargar",
+  "errorDetailsTitle": "Detalles del error",
+  "errorClose": "Cerrar",
+  "searchHint": "Canción, artista o álbum",
+  "categoryEditTitle": "Editar categorías",
+  "categorySongs": "Canciones",
+  "categoryArtists": "Artistas",
+  "categoryAlbums": "Álbumes",
+  "categoryPlaylists": "Listas",
+  "sortTitleAsc": "Título (A-Z)",
+  "sortTitleDesc": "Título (Z-A)",
+  "sortArtistAsc": "Artista (A-Z)",
+  "sortArtistDesc": "Artista (Z-A)",
+  "sortDurationAsc": "Duración (más corta)",
+  "sortDurationDesc": "Duración (más larga)",
+  "noSongs": "No hay canciones",
+  "noArtists": "No hay artistas",
+  "noAlbums": "No hay álbumes",
+  "noPlaylists": "No hay listas",
+  "noResults": "Sin resultados",
+  "songCount": "{count, plural, =0{0 canciones} =1{1 canción} other{{count} canciones}}",
+  "@songCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "artistSongCount": "{artist} • {count, plural, =1{1 canción} other{{count} canciones}}",
+  "@artistSongCount": {
+    "placeholders": {
+      "artist": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchTitle": "Búsqueda",
+  "searchPrompt": "Buscar por canción, artista o álbum",
+  "sectionSongs": "Canciones",
+  "sectionArtists": "Artistas",
+  "sectionAlbums": "Álbumes",
+  "sectionPlaylists": "Listas",
+  "queueUpNext": "Siguiente",
+  "queueEmpty": "La cola está vacía",
+  "removedFromQueue": "Eliminado \"{songName}\" de la cola",
+  "@removedFromQueue": {
+    "placeholders": {
+      "songName": {
+        "type": "String"
+      }
+    }
+  },
+  "playNext": "Reproducir después",
+  "addedPlayNext": "Añadido \"{songName}\" a Reproducir después",
+  "@addedPlayNext": {
+    "placeholders": {
+      "songName": {
+        "type": "String"
+      }
+    }
+  },
+  "addedToQueue": "Añadido a la cola",
+  "addToPlaylist": "Agregar a la lista",
+  "addToPlaylistTitle": "Agregar a la lista",
+  "createNewPlaylist": "Crear nueva lista",
+  "existingPlaylists": "Listas existentes",
+  "createPlaylist": "Crear lista",
+  "playlistNameHint": "Ingrese el nombre de la lista",
+  "playlistCreated": "Lista creada",
+  "addedToPlaylist": "Añadido a la lista",
+  "editLyrics": "Editar letra",
+  "editLyricsLrc": "Editar letra (LRC)",
+  "editManually": "Editar manualmente",
+  "adjustTiming": "Ajustar sincronización",
+  "lyricsFileNotFound": "Archivo de letra no encontrado",
+  "lyricsNoDestination": "No hay destino para el archivo de letras",
+  "lyricsSaved": "Letra guardada",
+  "lyricsSaveFailed": "Error al guardar la letra: {error}",
+  "@lyricsSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "lrcHint": "[00:12.34]Texto de la letra",
+  "editSongInfo": "Editar información de la canción",
+  "artworkLabel": "Carátula",
+  "selectImage": "Seleccionar imagen",
+  "changeImage": "Cambiar imagen",
+  "titleLabel": "Título",
+  "artistLabel": "Artista",
+  "albumLabel": "Álbum",
+  "songUpdated": "Canción actualizada",
+  "artworkSaveFailed": "Error al guardar la carátula: {error}",
+  "@artworkSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "metadataSaved": "Metadatos guardados",
+  "categoryDetailPlay": "Reproducir",
+  "categoryDetailShuffle": "Aleatorio",
+  "settingsTitle": "Configuración",
+  "themeTitle": "Tema",
+  "textColor": "Color del texto",
+  "backgroundColor": "Color de fondo",
+  "selectTextColor": "Seleccionar color de texto",
+  "selectBackgroundColor": "Seleccionar color de fondo",
+  "backgroundImage": "Imagen de fondo",
+  "notSet": "No establecido",
+  "removeBackgroundImage": "Eliminar imagen de fondo",
+  "adjustBackgroundImage": "Ajustar imagen de fondo",
+  "adjustBackgroundImageDesc": " pellizcar para acercar y mover",
+  "cropThumbnail": "Recortar miniatura",
+  "adjustThumbnail": "Ajustar miniatura",
+  "backgroundOpacity": "Opacidad",
+  "backgroundBlur": "Desenfoque",
+  "language": "Idioma",
+  "selectLanguage": "Seleccionar idioma",
+  "languageSystem": "Idioma del sistema",
+  "languageJapanese": "Japonés",
+  "languageEnglish": "Inglés",
+  "languageKorean": "Coreano",
+  "languageGerman": "Alemán",
+  "languageFrench": "Francés",
+  "languageChineseSimplified": "Chino (simplificado)",
+  "languageChineseTraditional": "Chino (tradicional)",
+  "languageSpanish": "Español",
+  "languagePortugueseBrazil": "Portugués (Brasil)",
+  "languageRussian": "Ruso",
+  "lyricsDisplayTitle": "Mostrar letra",
+  "lyricsFontSize": "Tamaño de fuente: {size}",
+  "@lyricsFontSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "lyricsContextLines": "Líneas a mostrar (incluida la actual): {count}",
+  "@lyricsContextLines": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "showArtworkBackground": "Mostrar carátula de fondo",
+  "showArtworkBackgroundDesc": "Mostrar la carátula detrás de la letra",
+  "playbackTitle": "Reproducción",
+  "skipSilence": "Saltar silencio",
+  "skipSilenceDesc": "Saltar partes silenciosas al inicio/final",
+  "silenceThreshold": "Umbral: {ms}ms",
+  "@silenceThreshold": {
+    "placeholders": {
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
+  "localFilesTitle": "Archivos locales",
+  "importFiles": "Importar archivos",
+  "importFolder": "Importar carpeta",
+  "importing": "Importando...",
+  "importCount": "{processed}/{total}",
+  "@importCount": {
+    "placeholders": {
+      "processed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "clearLibraryTitle": "Limpiar biblioteca",
+  "clearLibraryConfirm": "Se eliminarán todos los archivos locales.\nEsta acción no se puede deshacer.\n¿Estás seguro?",
+  "libraryCleared": "Biblioteca limpiada",
+  "duplicateDetection": "Detección de duplicados",
+  "duplicateDetectionDesc": "Eliminar archivos más antiguos",
+  "supportedFormatsTitle": "Formatos compatibles",
+  "audioFormatsTitle": "Formatos de audio",
+  "lyricsFormatsTitle": "Formatos de letra",
+  "lyricsFormatsDesc": "LRC (letras sincronizadas)",
+  "supportedQualityTitle": "Calidad compatible",
+  "supportedQualityDesc": "Lossless, Dolby Atmos",
+  "lrcAdjustTitle": "Ajuste LRC",
+  "selectSong": "Seleccionar una canción",
+  "offsetLabel": "Desplazamiento: {value}",
+  "@offsetLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "applyChanges": "Aplicar cambios",
+  "restore": "Restaurar",
+  "previewTitle": "Vista previa (primeras 30 líneas)",
+  "lrcFileNotFound": "Archivo LRC no encontrado",
+  "loadError": "Error de carga: {error}",
+  "@loadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "offset": "Offset",
+  "apply": "Apply",
+  "reset": "Reset",
+  "noLrcFileFound": "No LRC file found",
+  "upNext": "Up Next",
+  "close": "Close",
+  "queueIsEmpty": "Queue is empty",
+  "selectASong": "Select a song",
+  "play": "Play",
+  "applyChanges2": "Apply changes",
+  "restore2": "Restore",
+  "previewFirst30Lines": "Preview (first 30 lines)",
+  "customColor": "Custom color",
+  "darkMode": "Dark mode",
+  "appLanguage": "App language",
+  "followSystemSetting": "Idioma del sistema",
+  "save": "Save",
+  "cancel": "Cancel",
+  "change": "Change",
+  "selectLanguage2": "Select language",
+  "confirm": "Confirm",
+  "execute": "Execute",
+  "noData": "No data",
+  "error": "Error",
+  "delete": "Delete",
+  "search": "Search",
+  "artist": "Artist",
+  "tracks": "Tracks",
+  "albums": "Albums",
+  "createPlaylist2": "Create playlist",
+  "playpause": "Play/Pause",
+  "next": "Next",
+  "previous": "Previous",
+  "collection": "Collection",
+  "artistTrackAlbum": "Artist, track, album",
+  "welcome": "Welcome",
+  "getStarted": "Get started",
+  "showDebugInfo": "Show debug info",
+  "clear": "Clear",
+  "clearCache": "Clear cache",
+  "yes": "Yes",
+  "no": "No",
+  "switchTheme": "Switch theme",
+  "light": "Light",
+  "dark": "Dark",
+  "system": "System",
+  "play2": "Play",
+  "playQueue": "Play queue",
+  "remove": "Remove",
+  "migrateSettingsFromOlderVersions": "Migrate settings from older versions",
+  "tracks2": "Tracks",
+  "anErrorOccurred": "An error occurred",
+  "loading": "Loading...",
+  "offlineMode": "Offline mode",
+  "downloaded": "Downloaded",
+  "import": "Import",
+  "export": "Export",
+  "nowPlaying": "Now playing",
+  "param": "{processed}/{total}",
+  "@param": {
+    "placeholders": {
+      "processed": {},
+      "total": {}
+    }
+  }
+}

@@ -1,0 +1,305 @@
+{
+  "@@locale": "ko",
+  "appTitle": "Music Like",
+  "commonCancel": "취소",
+  "commonSave": "저장",
+  "commonClose": "닫기",
+  "commonDetails": "세부정보",
+  "commonDelete": "삭제",
+  "commonApply": "적용",
+  "commonReset": "재설정",
+  "commonPlay": "재생",
+  "commonShuffle": "셔플",
+  "commonSearch": "검색",
+  "commonSort": "정렬",
+  "commonEdit": "편집",
+  "commonRetry": "다시 시도",
+  "commonSaveChanges": "저장",
+  "tabSongs": "곡",
+  "tabArtists": "아티스트",
+  "tabAlbums": "앨범",
+  "tabPlaylists": "재생목록",
+  "drawerSettings": "설정",
+  "drawerEditCategories": "카테고리 편집",
+  "drawerSort": "정렬",
+  "libraryLoadFailed": "라이브러리 로드에 실패했습니다",
+  "libraryReload": "다시 불러오기",
+  "errorDetailsTitle": "오류 상세",
+  "errorClose": "닫기",
+  "searchHint": "곡명, 아티스트, 앨범",
+  "categoryEditTitle": "카테고리 편집",
+  "categorySongs": "곡",
+  "categoryArtists": "아티스트",
+  "categoryAlbums": "앨범",
+  "categoryPlaylists": "재생목록",
+  "sortTitleAsc": "제목 (A-Z)",
+  "sortTitleDesc": "제목 (Z-A)",
+  "sortArtistAsc": "아티스트 (A-Z)",
+  "sortArtistDesc": "아티스트 (Z-A)",
+  "sortDurationAsc": "재생시간 (짧은 순)",
+  "sortDurationDesc": "재생시간 (긴 순)",
+  "noSongs": "곡 없음",
+  "noArtists": "아티스트 없음",
+  "noAlbums": "앨범 없음",
+  "noPlaylists": "재생목록 없음",
+  "noResults": "결과 없음",
+  "songCount": "{count, plural, =0{0곡} =1{1곡} other{{count}곡}}",
+  "@songCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "artistSongCount": "{artist} • {count, plural, =1{1곡} other{{count}곡}}",
+  "@artistSongCount": {
+    "placeholders": {
+      "artist": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchTitle": "검색",
+  "searchPrompt": "곡명, 아티스트, 앨범으로 검색",
+  "sectionSongs": "곡",
+  "sectionArtists": "아티스트",
+  "sectionAlbums": "앨범",
+  "sectionPlaylists": "재생목록",
+  "queueUpNext": "다음 재생",
+  "queueEmpty": "큐가 비어 있습니다",
+  "removedFromQueue": "\"{songName}\"을(를) 큐에서 제거했습니다",
+  "@removedFromQueue": {
+    "placeholders": {
+      "songName": {
+        "type": "String"
+      }
+    }
+  },
+  "playNext": "다음에 재생",
+  "addedPlayNext": "\"{songName}\"을(를) 다음에 재생으로 추가했습니다",
+  "@addedPlayNext": {
+    "placeholders": {
+      "songName": {
+        "type": "String"
+      }
+    }
+  },
+  "addedToQueue": "큐에 추가되었습니다",
+  "addToPlaylist": "재생목록에 추가",
+  "addToPlaylistTitle": "재생목록에 추가",
+  "createNewPlaylist": "새 재생목록 생성",
+  "existingPlaylists": "기존 재생목록",
+  "createPlaylist": "재생목록 생성",
+  "playlistNameHint": "재생목록 이름 입력",
+  "playlistCreated": "재생목록이 생성되었습니다",
+  "addedToPlaylist": "재생목록에 추가되었습니다",
+  "editLyrics": "가사 편집",
+  "editLyricsLrc": "가사 편집 (LRC)",
+  "editManually": "수동으로 편집",
+  "adjustTiming": "타이밍 조정",
+  "lyricsFileNotFound": "가사 파일을 찾을 수 없습니다",
+  "lyricsNoDestination": "가사 파일의 저장 위치가 없습니다",
+  "lyricsSaved": "가사를 저장했습니다",
+  "lyricsSaveFailed": "가사 저장에 실패했습니다: {error}",
+  "@lyricsSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "lrcHint": "[00:12.34]가사 텍스트",
+  "editSongInfo": "곡 정보 편집",
+  "artworkLabel": "아트워크",
+  "selectImage": "이미지 선택",
+  "changeImage": "이미지 변경",
+  "titleLabel": "제목",
+  "artistLabel": "아티스트",
+  "albumLabel": "앨범",
+  "songUpdated": "곡 정보가 업데이트되었습니다",
+  "artworkSaveFailed": "아트워크 저장 실패: {error}",
+  "@artworkSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "metadataSaved": "메타데이터를 저장했습니다",
+  "categoryDetailPlay": "재생",
+  "categoryDetailShuffle": "셔플",
+  "settingsTitle": "설정",
+  "themeTitle": "테마",
+  "textColor": "텍스트 색상",
+  "backgroundColor": "배경 색상",
+  "selectTextColor": "텍스트 색상 선택",
+  "selectBackgroundColor": "배경 색상 선택",
+  "backgroundImage": "배경 이미지",
+  "notSet": "설정 안됨",
+  "removeBackgroundImage": "배경 이미지 제거",
+  "adjustBackgroundImage": "배경 이미지 조정",
+  "adjustBackgroundImageDesc": "핀치로 확대/축소하고 이동하세요",
+  "cropThumbnail": "썸네일 자르기",
+  "adjustThumbnail": "썸네일 조정",
+  "backgroundOpacity": "불투명도",
+  "backgroundBlur": "흐림",
+  "language": "언어",
+  "selectLanguage": "언어 선택",
+  "languageSystem": "시스템 언어",
+  "languageJapanese": "일본어",
+  "languageEnglish": "영어",
+  "languageKorean": "한국어",
+  "languageGerman": "독일어",
+  "languageFrench": "프랑스어",
+  "languageChineseSimplified": "중국어(간체)",
+  "languageChineseTraditional": "중국어(번체)",
+  "languageSpanish": "스페인어",
+  "languagePortugueseBrazil": "포르투갈어(브라질)",
+  "languageRussian": "러시아어",
+  "lyricsDisplayTitle": "가사 표시",
+  "lyricsFontSize": "글꼴 크기: {size}",
+  "@lyricsFontSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "lyricsContextLines": "표시할 줄 수 (현재 포함): {count}",
+  "@lyricsContextLines": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "showArtworkBackground": "배경에 아트워크 표시",
+  "showArtworkBackgroundDesc": "가사 뒤에 앨범 아트워크를 표시",
+  "playbackTitle": "재생",
+  "skipSilence": "무음 건너뛰기",
+  "skipSilenceDesc": "시작/끝의 무음 부분 건너뛰기",
+  "silenceThreshold": "임계값: {ms}ms",
+  "@silenceThreshold": {
+    "placeholders": {
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
+  "localFilesTitle": "로컬 파일",
+  "importFiles": "파일 가져오기",
+  "importFolder": "폴더 가져오기",
+  "importing": "가져오는 중...",
+  "importCount": "{processed}/{total}",
+  "@importCount": {
+    "placeholders": {
+      "processed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "clearLibraryTitle": "라이브러리 초기화",
+  "clearLibraryConfirm": "모든 로컬 파일이 제거됩니다.\n이 작업은 되돌릴 수 없습니다.\n진행하시겠습니까?",
+  "libraryCleared": "라이브러리를 초기화했습니다",
+  "duplicateDetection": "중복 감지",
+  "duplicateDetectionDesc": "오래된 파일 제거",
+  "supportedFormatsTitle": "지원 형식",
+  "audioFormatsTitle": "오디오 형식",
+  "lyricsFormatsTitle": "가사 형식",
+  "lyricsFormatsDesc": "LRC (타임 싱크 가사)",
+  "supportedQualityTitle": "지원 품질",
+  "supportedQualityDesc": "무손실, Dolby Atmos",
+  "lrcAdjustTitle": "LRC 조정",
+  "selectSong": "곡 선택",
+  "offsetLabel": "오프셋: {value}",
+  "@offsetLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "applyChanges": "변경 적용",
+  "restore": "복원",
+  "previewTitle": "미리보기 (첫 30줄)",
+  "lrcFileNotFound": "LRC 파일을 찾을 수 없습니다",
+  "loadError": "로드 오류: {error}",
+  "@loadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "offset": "Offset",
+  "apply": "Apply",
+  "reset": "Reset",
+  "noLrcFileFound": "No LRC file found",
+  "upNext": "Up Next",
+  "close": "Close",
+  "queueIsEmpty": "Queue is empty",
+  "selectASong": "Select a song",
+  "play": "Play",
+  "applyChanges2": "Apply changes",
+  "restore2": "Restore",
+  "previewFirst30Lines": "Preview (first 30 lines)",
+  "customColor": "Custom color",
+  "darkMode": "Dark mode",
+  "appLanguage": "App language",
+  "followSystemSetting": "시스템 언어",
+  "save": "Save",
+  "cancel": "Cancel",
+  "change": "Change",
+  "selectLanguage2": "Select language",
+  "confirm": "Confirm",
+  "execute": "Execute",
+  "noData": "No data",
+  "error": "Error",
+  "delete": "Delete",
+  "search": "Search",
+  "artist": "Artist",
+  "tracks": "Tracks",
+  "albums": "Albums",
+  "createPlaylist2": "Create playlist",
+  "playpause": "Play/Pause",
+  "next": "Next",
+  "previous": "Previous",
+  "collection": "Collection",
+  "artistTrackAlbum": "Artist, track, album",
+  "welcome": "Welcome",
+  "getStarted": "Get started",
+  "showDebugInfo": "Show debug info",
+  "clear": "Clear",
+  "clearCache": "Clear cache",
+  "yes": "Yes",
+  "no": "No",
+  "switchTheme": "Switch theme",
+  "light": "Light",
+  "dark": "Dark",
+  "system": "System",
+  "play2": "Play",
+  "playQueue": "Play queue",
+  "remove": "Remove",
+  "migrateSettingsFromOlderVersions": "Migrate settings from older versions",
+  "tracks2": "Tracks",
+  "anErrorOccurred": "An error occurred",
+  "loading": "Loading...",
+  "offlineMode": "Offline mode",
+  "downloaded": "Downloaded",
+  "import": "Import",
+  "export": "Export",
+  "nowPlaying": "Now playing",
+  "param": "{processed}/{total}",
+  "@param": {
+    "placeholders": {
+      "processed": {},
+      "total": {}
+    }
+  }
+}

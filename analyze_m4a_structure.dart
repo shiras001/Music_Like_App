@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 /// M4A/MP4 Atom構造を分析するプログラム
 void main() async {

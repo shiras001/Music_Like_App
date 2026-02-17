@@ -1,0 +1,1 @@
+We use Google AdMob and present Google's UMP consent form on first launch. Personalized ads require consent; the Advertising ID is used for ad delivery and measurement. See the app privacy policy for details.

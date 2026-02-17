@@ -111,6 +111,30 @@ class Playlist {
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'songIds': songIds,
+      'description': description,
+      'coverUrl': coverUrl,
+      'createdAt': createdAt.millisecondsSinceEpoch,
+      'updatedAt': updatedAt?.millisecondsSinceEpoch,
+    };
+  }
+
+  factory Playlist.fromJson(Map<String, dynamic> json) {
+    return Playlist(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      songIds: List<String>.from(json['songIds'] as List<dynamic>? ?? []),
+      description: json['description'] as String?,
+      coverUrl: json['coverUrl'] as String?,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int),
+      updatedAt: json['updatedAt'] != null ? DateTime.fromMillisecondsSinceEpoch(json['updatedAt'] as int) : null,
+    );
+  }
 }
 
 // ============================================================================

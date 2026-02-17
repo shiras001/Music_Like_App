@@ -1,0 +1,6 @@
+{
+  // Copilot / Chat 用のエージェントスキルを有効化
+  // このリポジトリ内の .github/skills をスキルの配置場所として使用します。
+  "chat.useAgentSkills": true,
+  "chat.agentSkillsLocations": [".github/skills"]
+}

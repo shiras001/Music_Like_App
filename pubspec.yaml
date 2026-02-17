@@ -2,7 +2,7 @@ name: music_like
 description: MUSIC LIKE - Apple Music ライク音楽ストリーミングアプリ
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 0.0.1+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -11,6 +11,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
   flutter_riverpod: ^2.4.0
   riverpod: ^2.4.0
   cupertino_icons: ^1.0.6
@@ -22,8 +25,8 @@ dependencies:
   # ストレージパス取得
   path_provider: ^2.1.0
   
-  # YouTube音声取得
-  youtube_explode_dart: ^3.0.5
+  # YouTube音声取得（リリース版では削除）
+  # youtube_explode_dart: ^3.0.5
   
   # パス操作
   path: ^1.8.0
@@ -36,9 +39,30 @@ dependencies:
   
   # 通知・ロック画面制御
   audio_service: ^0.18.0
+
+  # Android 13+ 通知権限リクエスト
+  permission_handler: ^11.3.1
   
   # 設定の永続化
   shared_preferences: ^2.2.0
+
+  # ローカルライブラリDB
+  sqflite: ^2.3.0
+
+  # サムネイル生成
+  image: ^4.1.3
+
+  # 画像トリミング
+  image_cropper: ^11.0.0
+
+  # カラーピッカー
+  flutter_colorpicker: ^1.1.0
+
+  # Ads
+  google_mobile_ads: ^5.1.0
+
+  # ファイルパスの安定ハッシュ
+  crypto: ^3.0.3
 
 dev_dependencies:
   flutter_test:
@@ -47,11 +71,12 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true
   assets:
-    - app_icon.png
+    - icon_2melody.png
 
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "app_icon.png"
+  image_path: "icon_2melody.png"
   min_sdk_android: 21

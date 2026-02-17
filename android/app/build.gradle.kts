@@ -1,3 +1,7 @@
+import java.util.Properties
+import java.io.FileInputStream
+import java.io.File
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -5,9 +9,33 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Load keystore properties from android/key.properties (rootProject is android/)
+val keystorePropertiesFile = if (rootProject.file("key.properties").exists()) {
+    rootProject.file("key.properties")
+} else {
+    // backward compatibility for incorrect old path
+    rootProject.file("android/key.properties")
+}
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.inputStream().use { stream ->
+        keystoreProperties.load(stream)
+    }
+}
+
+fun readKeystoreProp(name: String): String? {
+    val direct = keystoreProperties.getProperty(name)
+    if (!direct.isNullOrBlank()) return direct.trim()
+    // Handle UTF-8 BOM on first key (e.g. "\uFEFFstorePassword")
+    val fromEntries = keystoreProperties.entries.firstOrNull { (k, _) ->
+        k.toString().trimStart('\uFEFF').trim() == name
+    }?.value?.toString()
+    return fromEntries?.trim()?.takeIf { it.isNotEmpty() }
+}
+
 android {
-    namespace = "com.example.flutter_application_4"
-    compileSdk = flutter.compileSdkVersion
+    namespace = "com.likelife.musiclike"
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -20,21 +48,39 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.flutter_application_4"
+        // Application ID used on the Play Store
+        applicationId = "com.likelife.musiclike"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        minSdk = 24  // Set to 24 to support modern Android APIs and avoid ClassNotFoundException
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            keyAlias = readKeystoreProp("keyAlias")
+            keyPassword = readKeystoreProp("keyPassword")
+            val storePath = readKeystoreProp("storeFile")
+            if (!storePath.isNullOrBlank()) {
+                // key.properties is in android/, so relative paths should resolve from rootProject (android/)
+                val f = File(storePath)
+                storeFile = if (f.isAbsolute) f else rootProject.file(storePath)
+            }
+            storePassword = readKeystoreProp("storePassword")
+            storeType = readKeystoreProp("storeType") ?: "pkcs12"
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Use release signing config when available; fallback to debug if not.
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
+            // Enable code shrinking when removing unused resources
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 }

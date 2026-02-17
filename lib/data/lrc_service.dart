@@ -5,6 +5,46 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
+
+// Worker function executed in a background isolate by `compute()`.
+// Returns a list of maps representing parsed LRC lines.
+Future<List<Map<String, dynamic>>> _parseLrcFileWorker(String lrcFilePath) async {
+  final file = File(lrcFilePath);
+  if (!file.existsSync()) {
+    return [];
+  }
+
+  final content = await file.readAsString(encoding: utf8);
+  final lines = content.split('\n');
+  final result = <Map<String, dynamic>>[];
+     final timePattern = RegExp(r'^\[(\d{2}):(\d{2})\.(\d{2})\](.*)$');
+
+  for (final line in lines) {
+    final trimmed = line.trim();
+    if (trimmed.isEmpty) continue;
+    final match = timePattern.firstMatch(trimmed);
+    if (match == null) continue;
+
+    try {
+      final minutes = int.parse(match.group(1)!);
+      final seconds = int.parse(match.group(2)!);
+      final centiseconds = int.parse(match.group(3)!);
+      final lyrics = match.group(4)!.trim();
+
+      final timeMilliseconds = (minutes * 60 * 1000) + (seconds * 1000) + (centiseconds * 10);
+
+      result.add({
+        'timeMilliseconds': timeMilliseconds,
+        'lyrics': lyrics,
+      });
+    } catch (e) {
+      // ignore malformed lines in worker
+    }
+  }
+
+  return result;
+}
 
 /// LRC形式の1行を表現するエンティティ
 class LrcLine {
@@ -28,30 +68,16 @@ class LrcParseService {
   /// 戻り値 - 時間順にソートされた LrcLine リスト
   static Future<List<LrcLine>> parseLrcFile(String lrcFilePath) async {
     try {
-      final file = File(lrcFilePath);
-      
-      if (!await file.exists()) {
-        print('[LRC] エラー: ファイルが存在しません: $lrcFilePath');
-        return [];
-      }
-
-      final content = await file.readAsString(encoding: utf8);
-      print('[LRC] ファイル読み込み完了: $lrcFilePath (${content.length} bytes)');
-      
-      final lines = content.split('\n');
-      final lrcLines = <LrcLine>[];
-
-      for (final line in lines) {
-        final parsed = _parseLrcLine(line);
-        if (parsed != null) {
-          lrcLines.add(parsed);
-          print('[LRC] 行解析: ${parsed.timeMilliseconds}ms - ${parsed.lyrics}');
-        }
-      }
+      // Heavy parsing is moved to a background isolate via compute()
+      final parsedMaps = await compute(_parseLrcFileWorker, lrcFilePath);
+      final lrcLines = parsedMaps.map((m) => LrcLine(
+        timeMilliseconds: m['timeMilliseconds'] as int,
+        lyrics: m['lyrics'] as String,
+      )).toList();
 
       // 時間でソート
       lrcLines.sort((a, b) => a.timeMilliseconds.compareTo(b.timeMilliseconds));
-      
+
       print('[LRC] 解析完了: ${lrcLines.length}行');
       return lrcLines;
     } catch (e) {
@@ -64,39 +90,7 @@ class LrcParseService {
   /// 
   /// 例: "[00:12.34]歌詞テキスト"
   /// 戻り値 - 解析成功時は LrcLine、失敗時は null
-  static LrcLine? _parseLrcLine(String line) {
-    final trimmed = line.trim();
-    
-    if (trimmed.isEmpty) return null;
-    
-    // [mm:ss.xx] 形式を抽出
-    final timePattern = RegExp(r'^\[(\d{2}):(\d{2})\.(\d{2})\](.*)$');
-    final match = timePattern.firstMatch(trimmed);
-    
-    if (match == null) {
-      return null;
-    }
-
-    try {
-      final minutes = int.parse(match.group(1)!);
-      final seconds = int.parse(match.group(2)!);
-      final centiseconds = int.parse(match.group(3)!);
-      final lyrics = match.group(4)!.trim();
-
-      final timeMilliseconds = 
-        (minutes * 60 * 1000) + 
-        (seconds * 1000) + 
-        (centiseconds * 10);
-
-      return LrcLine(
-        timeMilliseconds: timeMilliseconds,
-        lyrics: lyrics,
-      );
-    } catch (e) {
-      print('[LRC] 行解析失敗: $trimmed - エラー: $e');
-      return null;
-    }
-  }
+  // single-line parser removed in favor of worker-based parsing (_parseLrcFileWorker)
 
   /// 指定時間に該当する歌詞行を取得
   /// 

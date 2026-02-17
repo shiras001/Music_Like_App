@@ -1,0 +1,209 @@
+List of `_t(` occurrences found for manual migration to `AppLocalizations`:
+
+1) lib/ui/full_player/full_player_screen.dart:361
+   '${_t(context, ja: 'オフセット', en: 'Offset', zh: '偏移')}: ${_adjustOffsetMs >= 0 ? '+' : '-'}${(_adjustOffsetMs.abs() / 1000).toStringAsFixed(2)}s',
+
+2) lib/ui/full_player/full_player_screen.dart:371
+   child: Text(_t(context, ja: '変更', en: 'Apply', zh: '应用')),
+
+3) lib/ui/full_player/full_player_screen.dart:376
+   child: Text(_t(context, ja: 'リセット', en: 'Reset', zh: '重置')),
+
+4) lib/ui/full_player/full_player_helpers.dart:136
+   _t(context, ja: 'LRCファイルがありません', en: 'No LRC file found', zh: '未找到LRC文件'),
+
+5) lib/ui/full_player/full_player_helpers.dart:161
+   child: Text(_t(context, ja: '変更', en: 'Apply', zh: '应用')),
+
+6) lib/ui/full_player/full_player_helpers.dart:166
+   child: Text(_t(context, ja: 'リセット', en: 'Reset', zh: '重置')),
+
+7) lib/ui/full_player/queue_view.dart:37
+   _t(context, ja: '次に再生', en: 'Up Next', zh: '接下来播放'),
+
+8) lib/ui/full_player/queue_view.dart:46
+   _t(context, ja: '閉じる', en: 'Close', zh: '关闭'),
+
+9) lib/ui/full_player/queue_view.dart:58
+   _t(context, ja: 'キューに曲がありません', en: 'Queue is empty', zh: '队列为空'),
+
+10) lib/ui/full_player/queue_view.dart:138
+    (multi-line _t usage)
+
+11) lib/ui/lrc/lrc_adjust_screen.dart:191
+    labelText: _t(context, ja: '曲を選択', en: 'Select a song', zh: '选择歌曲'),
+
+12) lib/ui/lrc/lrc_adjust_screen.dart:200
+    _t(context, ja: 'オフセット: ${_formatOffset(_offsetMs)}', en: 'Offset: ${_formatOffset(_offsetMs)}', zh: '偏移: ${_formatOffset(_offsetMs)}'),
+
+13) lib/ui/lrc/lrc_adjust_screen.dart:207
+    label: Text(_t(context, ja: '再生', en: 'Play', zh: '播放')),
+
+14) lib/ui/lrc/lrc_adjust_screen.dart:216
+    child: Text(_t(context, ja: '変更を適用', en: 'Apply changes', zh: '应用更改')),
+
+15) lib/ui/lrc/lrc_adjust_screen.dart:221
+    child: Text(_t(context, ja: '元に戻す', en: 'Restore', zh: '恢复')),
+
+16) lib/ui/lrc/lrc_adjust_screen.dart:253
+    Text(_t(context, ja: 'プレビュー（先頭30行）', en: 'Preview (first 30 lines)', zh: '预览（前30行）')),
+
+17) lib/ui/settings/settings_helpers.dart:117
+    (multi-line _t in warning block)
+
+18) lib/ui/settings/settings_helpers.dart:172
+    label: Text(_t(context, ja: 'カスタムカラー', en: 'Custom color', zh: '自定义颜色')),
+
+19) lib/ui/settings/settings_helpers.dart:181
+    subtitle: Text(_t(context, ja: 'ダークモード', en: 'Dark mode', zh: '深色模式')),
+
+20) lib/ui/settings/settings_helpers.dart:225
+    title: Text(_t(context, ja: 'アプリの言語', en: 'App language', zh: '应用语言')),
+
+21) lib/ui/settings/settings_helpers.dart:232
+    _t(context, ja: 'システム設定に従う', en: 'Follow system setting', zh: '跟随系统设置'),
+
+22) lib/ui/settings/settings_helpers.dart:290
+    child: Text(_t(context, ja: '保存', en: 'Save', zh: '保存')),
+
+23) lib/ui/settings/settings_helpers.dart:295
+    child: Text(_t(context, ja: 'キャンセル', en: 'Cancel', zh: '取消')),
+
+24) lib/ui/settings/settings_tab.dart:98
+    trailing: Text(_t(context, ja: '変更', en: 'Change', zh: '更改')),
+
+25) lib/ui/settings/settings_tab.dart:142
+    Text(_t(context, ja: '言語を選択', en: 'Select language', zh: '选择语言')),
+
+26) lib/ui/settings/settings_tab.dart:189
+    child: Text(_t(context, ja: '閉じる', en: 'Close', zh: '关闭')),
+
+27) lib/ui/widgets/confirm_dialog.dart:45
+    title: Text(_t(context, ja: '確認', en: 'Confirm', zh: '确认')),
+
+28) lib/ui/widgets/confirm_dialog.dart:63
+    cancelText: _t(context, ja: 'キャンセル', en: 'Cancel', zh: '取消'),
+
+29) lib/ui/widgets/confirm_dialog.dart:64
+    confirmText: _t(context, ja: '実行', en: 'Execute', zh: '执行'),
+
+30) lib/ui/widgets/empty_placeholder.dart:22
+    child: Text(_t(context, ja: 'データがありません', en: 'No data', zh: '没有数据')),
+
+31) lib/ui/widgets/error_view.dart:30
+    title: Text(_t(context, ja: 'エラー', en: 'Error', zh: '错误')),
+
+32) lib/ui/widgets/secondary_button.dart:18
+    child: Text(_t(context, ja: 'キャンセル', en: 'Cancel', zh: '取消')),
+
+33) lib/ui/widgets/primary_button.dart:16
+    child: Text(_t(context, ja: '保存', en: 'Save', zh: '保存')),
+
+34) lib/ui/widgets/confirm_list_tile.dart:28
+    trailing: Text(_t(context, ja: '削除', en: 'Delete', zh: '删除')),
+
+35) lib/ui/widgets/search_bar.dart:54
+    hintText: _t(context, ja: '検索', en: 'Search', zh: '搜索'),
+
+36) lib/ui/widgets/track_tile.dart:92
+    subtitle: Text(_t(context, ja: 'アーティスト', en: 'Artist', zh: '艺术家')),
+
+37) lib/ui/widgets/track_tile.dart:99
+    trailing: Text(_t(context, ja: '再生', en: 'Play', zh: '播放')),
+
+38) lib/ui/album/album_screen.dart:128
+    Text(_t(context, ja: '曲', en: 'Tracks', zh: '曲目')),
+
+39) lib/ui/artist/artist_screen.dart:110
+    Text(_t(context, ja: 'アルバム', en: 'Albums', zh: '专辑')),
+
+40) lib/ui/playlist/playlist_screen.dart:72
+    Text(_t(context, ja: 'プレイリストを作成', en: 'Create playlist', zh: '创建播放列表')),
+
+41) lib/ui/player/player_controls.dart:56
+    tooltip: _t(context, ja: '再生/一時停止', en: 'Play/Pause', zh: '播放/暂停'),
+
+42) lib/ui/player/player_controls.dart:74
+    tooltip: _t(context, ja: '次へ', en: 'Next', zh: '下一首'),
+
+43) lib/ui/player/player_controls.dart:92
+    tooltip: _t(context, ja: '前へ', en: 'Previous', zh: '上一首'),
+
+44) lib/ui/collection/collection_screen.dart:39
+    Text(_t(context, ja: 'コレクション', en: 'Collection', zh: '收藏')),
+
+45) lib/ui/search/search_screen.dart:121
+    hintText: _t(context, ja: 'アーティスト、曲名、アルバム', en: 'Artist, track, album', zh: '艺术家、曲目、专辑'),
+
+46) lib/ui/onboarding/onboarding_screen.dart:55
+    title: Text(_t(context, ja: 'ようこそ', en: 'Welcome', zh: '欢迎')),
+
+47) lib/ui/onboarding/onboarding_screen.dart:68
+    buttonText: _t(context, ja: '始める', en: 'Get started', zh: '开始'),
+
+48) lib/ui/settings/advanced_settings.dart:33
+    subtitle: Text(_t(context, ja: 'デバッグ情報を表示', en: 'Show debug info', zh: '显示调试信息')),
+
+49) lib/ui/settings/advanced_settings.dart:78
+    child: Text(_t(context, ja: 'クリア', en: 'Clear', zh: '清除')),
+
+50) lib/ui/settings/cache_settings.dart:24
+    title: Text(_t(context, ja: 'キャッシュをクリア', en: 'Clear cache', zh: '清除缓存')),
+
+51) lib/ui/settings/cache_settings.dart:45
+    confirmText: _t(context, ja: 'はい', en: 'Yes', zh: '是'),
+
+52) lib/ui/settings/cache_settings.dart:46
+    cancelText: _t(context, ja: 'いいえ', en: 'No', zh: '否'),
+
+53) lib/ui/settings/appearance_settings.dart:22
+    subtitle: Text(_t(context, ja: 'テーマを切り替え', en: 'Switch theme', zh: '切换主题')),
+
+54) lib/ui/settings/appearance_settings.dart:60
+    child: Text(_t(context, ja: 'ライト', en: 'Light', zh: '明亮')),
+
+55) lib/ui/settings/appearance_settings.dart:65
+    child: Text(_t(context, ja: 'ダーク', en: 'Dark', zh: '黑暗')),
+
+56) lib/ui/settings/appearance_settings.dart:70
+    child: Text(_t(context, ja: 'システム', en: 'System', zh: '系统')),
+
+57) lib/ui/collection/collection_details.dart:88
+    Text(_t(context, ja: 'プレイ', en: 'Play', zh: '播放')),
+
+58) lib/ui/queue/queue_screen.dart:49
+    Text(_t(context, ja: '再生キュー', en: 'Play queue', zh: '播放队列')),
+
+59) lib/ui/queue/queue_screen.dart:112
+    trailing: Text(_t(context, ja: '削除', en: 'Remove', zh: '移除')),
+
+60) lib/data/migrations/locale_migration.dart:21
+    description: _t(context, ja: '以前のバージョンからの設定を移行します', en: 'Migrate settings from older versions', zh: '从旧版本迁移设置'),
+
+61) lib/ui/playlist/playlist_tile.dart:34
+    subtitle: Text(_t(context, ja: '曲数', en: 'Tracks', zh: '曲数')),
+
+62) lib/ui/error/error_screen.dart:28
+    message: _t(context, ja: 'エラーが発生しました', en: 'An error occurred', zh: '发生错误'),
+
+63) lib/ui/splash/splash_screen.dart:14
+    Text(_t(context, ja: '読み込み中...', en: 'Loading...', zh: '加载中...')),
+
+64) lib/ui/offline/offline_notice.dart:9
+    Text(_t(context, ja: 'オフラインモード', en: 'Offline mode', zh: '离线模式')),
+
+65) lib/ui/downloads/downloads_screen.dart:52
+    Text(_t(context, ja: 'ダウンロード済み', en: 'Downloaded', zh: '已下载')),
+
+66) lib/ui/settings/import_export.dart:98
+    confirmText: _t(context, ja: 'インポート', en: 'Import', zh: '导入'),
+
+67) lib/ui/settings/import_export.dart:104
+    confirmText: _t(context, ja: 'エクスポート', en: 'Export', zh: '导出'),
+
+68) lib/ui/now_playing/now_playing_overlay.dart:29
+    Text(_t(context, ja: '現在再生中', en: 'Now playing', zh: '正在播放')),
+
+Full occurrences: 68 matches.
+
+Use this list to methodically replace each `_t(...)` call with `AppLocalizations.of(context)!.<key>` and add the corresponding key to ARB files.

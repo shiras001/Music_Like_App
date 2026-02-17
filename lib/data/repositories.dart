@@ -3,13 +3,17 @@
 /// - リポジトリインターフェース（IMusicRepository, IPlaylistRepository, ILocalSettingsRepository）
 /// - 実装クラス
 /// 
+import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../domain/entities.dart';
-import 'youtube_service.dart';
 import 'local_audio_service.dart';
+import 'local_music_db.dart';
+import 'thumbnail_store.dart';
 
 // ============================================================================
 // 設定データモデル
@@ -71,29 +75,25 @@ class LocalFileSettings {
 
 /// 歌詞表示設定
 class LyricsSettings {
-  final bool enabled;              // 歌詞表示の有効/無効
   final int contextLines;          // 前後の表示行数
   final double fontSize;           // フォントサイズ
-  final bool highlightCurrent;     // 現在行の強調表示
+  final bool showBackground;       // 背景にサムネイルを表示するか
 
   LyricsSettings({
-    this.enabled = true,
     this.contextLines = 2,
     this.fontSize = 16.0,
-    this.highlightCurrent = true,
+    this.showBackground = true,
   });
 
   LyricsSettings copyWith({
-    bool? enabled,
     int? contextLines,
     double? fontSize,
-    bool? highlightCurrent,
+    bool? showBackground,
   }) {
     return LyricsSettings(
-      enabled: enabled ?? this.enabled,
       contextLines: contextLines ?? this.contextLines,
       fontSize: fontSize ?? this.fontSize,
-      highlightCurrent: highlightCurrent ?? this.highlightCurrent,
+      showBackground: showBackground ?? this.showBackground,
     );
   }
 }
@@ -104,12 +104,38 @@ class AppSettings {
   final LocalFileSettings localFileSettings;
   final LyricsSettings lyricsSettings;
   final bool airPlayEnabled;       // AirPlay選択機能
+  final String locale;            // アプリの表示言語（'ja','en','zh'）
+  final int themeBackgroundColor;  // 背景色（ARGB）
+  final int themeTextColor;        // 文字色（ARGB）
+  final String? backgroundImagePath; // 背景画像パス
+  final double backgroundImageScale; // 背景画像拡大率
+  final double backgroundImageOffsetX; // 背景画像Xオフセット（-1.0〜1.0）
+  final double backgroundImageOffsetY; // 背景画像Yオフセット（-1.0〜1.0）
+  final double backgroundImageOpacity; // 背景画像透明率（0.0〜1.0）
+  final double backgroundImageBlurSigma; // 背景画像ぼかし（0.0〜20.0）
+  final double backgroundImageBrightness; // 背景画像明度（0.5〜1.5）
+  final bool silenceSkipEnabled;   // 無音スキップ有効/無効
+  final int silenceSkipThreshold;  // 無音判定の閾値（ミリ秒）
+  // 歌詞背景の表示は `lyricsSettings.showBackground` に統合
 
   AppSettings({
     YouTubeSettings? youtubeSettings,
     LocalFileSettings? localFileSettings,
     LyricsSettings? lyricsSettings,
     this.airPlayEnabled = true,
+    this.locale = 'ja',
+    this.themeBackgroundColor = 0xFF000000,
+    this.themeTextColor = 0xFFFFFFFF,
+    this.backgroundImagePath,
+    this.backgroundImageScale = 1.0,
+    this.backgroundImageOffsetX = 0.0,
+    this.backgroundImageOffsetY = 0.0,
+    this.backgroundImageOpacity = 1.0,
+    this.backgroundImageBlurSigma = 0.0,
+    this.backgroundImageBrightness = 1.0,
+    this.silenceSkipEnabled = false,
+    this.silenceSkipThreshold = 500,
+    // ライリクス設定は既に初期化される
   })  : youtubeSettings = youtubeSettings ?? YouTubeSettings(),
         localFileSettings = localFileSettings ?? LocalFileSettings(),
         lyricsSettings = lyricsSettings ?? LyricsSettings();
@@ -119,12 +145,38 @@ class AppSettings {
     LocalFileSettings? localFileSettings,
     LyricsSettings? lyricsSettings,
     bool? airPlayEnabled,
+    String? locale,
+    int? themeBackgroundColor,
+    int? themeTextColor,
+    String? backgroundImagePath,
+    double? backgroundImageScale,
+    double? backgroundImageOffsetX,
+    double? backgroundImageOffsetY,
+    double? backgroundImageOpacity,
+    double? backgroundImageBlurSigma,
+    double? backgroundImageBrightness,
+    bool? silenceSkipEnabled,
+    int? silenceSkipThreshold,
+    // lyrics background options moved into LyricsSettings
   }) {
     return AppSettings(
       youtubeSettings: youtubeSettings ?? this.youtubeSettings,
       localFileSettings: localFileSettings ?? this.localFileSettings,
       lyricsSettings: lyricsSettings ?? this.lyricsSettings,
       airPlayEnabled: airPlayEnabled ?? this.airPlayEnabled,
+      locale: locale ?? this.locale,
+      themeBackgroundColor: themeBackgroundColor ?? this.themeBackgroundColor,
+      themeTextColor: themeTextColor ?? this.themeTextColor,
+      backgroundImagePath: backgroundImagePath ?? this.backgroundImagePath,
+      backgroundImageScale: backgroundImageScale ?? this.backgroundImageScale,
+      backgroundImageOffsetX: backgroundImageOffsetX ?? this.backgroundImageOffsetX,
+      backgroundImageOffsetY: backgroundImageOffsetY ?? this.backgroundImageOffsetY,
+      backgroundImageOpacity: backgroundImageOpacity ?? this.backgroundImageOpacity,
+      backgroundImageBlurSigma: backgroundImageBlurSigma ?? this.backgroundImageBlurSigma,
+      backgroundImageBrightness: backgroundImageBrightness ?? this.backgroundImageBrightness,
+      silenceSkipEnabled: silenceSkipEnabled ?? this.silenceSkipEnabled,
+      silenceSkipThreshold: silenceSkipThreshold ?? this.silenceSkipThreshold,
+      // lyricsSettings handled separately
     );
   }
 }
@@ -140,6 +192,11 @@ abstract class IMusicRepository {
   Future<void> updateSongMetadata(String songId, Map<String, dynamic> data);
   Future<void> updateSongVolumeOffset(String songId, double offsetDb);
   Future<void> deleteSong(String songId);
+  Future<void> upsertSong(Song song, {int parseState = 1});
+  Future<void> upsertSongs(List<Song> songs, {int parseState = 1});
+  Future<Set<String>> getExistingLocalPaths(List<String> paths);
+  Future<void> clearLibrary();
+  Future<List<String>> getUnparsedFilePaths({int limit = 100});
 }
 
 /// プレイリスト操作リポジトリ
@@ -187,9 +244,33 @@ abstract class ISearchRepository {
 // ============================================================================
 
 class MusicRepositoryImpl implements IMusicRepository {
+  Future<File> _getMetadataOverridesFile() async {
+    final appDocDir = await getApplicationDocumentsDirectory();
+    return File(p.join(appDocDir.path, 'metadata_overrides.json'));
+  }
+
+  Future<Map<String, dynamic>> _readMetadataOverrides() async {
+    try {
+      final file = await _getMetadataOverridesFile();
+      if (!await file.exists()) return {};
+      final content = await file.readAsString();
+      if (content.trim().isEmpty) return {};
+      final decoded = jsonDecode(content);
+      if (decoded is Map<String, dynamic>) return decoded;
+    } catch (_) {}
+    return {};
+  }
+
+  Future<void> _writeMetadataOverrides(Map<String, dynamic> data) async {
+    final file = await _getMetadataOverridesFile();
+    await file.writeAsString(jsonEncode(data));
+  }
+
   @override
   Future<List<Song>> fetchLibrary() async {
     try {
+      final metadataOverrides = await _readMetadataOverrides();
+
       // アプリ専用ディレクトリの Music フォルダをスキャン
       final appDocDir = Directory(
         (await getApplicationDocumentsDirectory()).path,
@@ -291,12 +372,83 @@ class MusicRepositoryImpl implements IMusicRepository {
                 final audioDir = p.dirname(localPath);
                 final baseName = p.basenameWithoutExtension(localPath);
                 final lrcCandidate = p.join(audioDir, '$baseName.lrc');
+                final lrcCandidateUpper = p.join(audioDir, '$baseName.LRC');
+                
                 if (File(lrcCandidate).existsSync()) {
                   lyricsPath = lrcCandidate;
+                  debugPrint('[LRC検出] 小文字: $lrcCandidate');
+                } else if (File(lrcCandidateUpper).existsSync()) {
+                  lyricsPath = lrcCandidateUpper;
+                  debugPrint('[LRC検出] 大文字: $lrcCandidateUpper');
+                } else {
+                  final dir = Directory(audioDir);
+                  if (dir.existsSync()) {
+                    // より柔軟な名前マッチング
+                    for (final entity in dir.listSync()) {
+                      if (entity is File) {
+                        final ext = p.extension(entity.path).toLowerCase();
+                        final fileName = p.basename(entity.path);
+                        final baseNameOfEntity = p.basenameWithoutExtension(fileName);
+                        
+                        // 拡張子が.lrcで、ベース名が一致
+                        if (ext == '.lrc' && baseNameOfEntity == baseName) {
+                          lyricsPath = entity.path;
+                          debugPrint('[LRC検出] マッチング成功: ${entity.path}');
+                          break;
+                        }
+                        // フォールバック：大文字小文字を無視して比較
+                        if (ext == '.lrc' && baseNameOfEntity.toLowerCase() == baseName.toLowerCase()) {
+                          lyricsPath = entity.path;
+                          debugPrint('[LRC検出] 大文字小文字無視マッチング: ${entity.path}');
+                          break;
+                        }
+                      }
+                    }
+                  }
                 }
-              } catch (_) {}
+              } catch (e) {
+                debugPrint('[LRC検出エラー] $e');
+              }
 
-              final song = Song(
+              // If we found a lyrics file but it's not located in the same
+              // directory as the audio file, copy it into the audio directory
+              // so the app can always reference a local lyrics file adjacent
+              // to the audio file.
+              try {
+                if (lyricsPath != null) {
+                  final audioDir = p.dirname(localPath);
+                  final lyricsDir = p.dirname(lyricsPath);
+                  if (p.normalize(audioDir) != p.normalize(lyricsDir)) {
+                    final destName = p.basename(lyricsPath).toLowerCase().endsWith('.lrc')
+                        ? p.basename(lyricsPath)
+                        : '${p.basenameWithoutExtension(lyricsPath)}.lrc';
+                    var destPath = p.join(audioDir, destName);
+
+                    // If destination already exists, try to avoid overwriting by
+                    // appending an index.
+                    int idx = 1;
+                    while (File(destPath).existsSync()) {
+                      final nameOnly = p.basenameWithoutExtension(destName);
+                      final ext = p.extension(destName);
+                      destPath = p.join(audioDir, '${nameOnly}_$idx$ext');
+                      idx++;
+                      if (idx > 10) break;
+                    }
+
+                    try {
+                      await File(lyricsPath).copy(destPath);
+                      lyricsPath = destPath;
+                      debugPrint('[LRCコピー] $lyricsPath にコピーしました');
+                    } catch (e) {
+                      debugPrint('[LRCコピー失敗] $e');
+                    }
+                  }
+                }
+              } catch (e) {
+                debugPrint('[LRCコピー処理エラー] $e');
+              }
+
+              var song = Song(
                 id: id,
                 title: title,
                 artist: artist,
@@ -308,6 +460,24 @@ class MusicRepositoryImpl implements IMusicRepository {
                 artworkUrl: artworkPath,
                 lyricsPath: lyricsPath,
               );
+
+              // メタデータ上書き（ローカルパス単位）
+              final override = metadataOverrides[localPath];
+              if (override is Map<String, dynamic>) {
+                Duration? overrideDuration;
+                final durationMs = override['durationMs'];
+                if (durationMs is int && durationMs > 0) {
+                  overrideDuration = Duration(milliseconds: durationMs);
+                }
+                song = song.copyWith(
+                  title: (override['title'] as String?) ?? song.title,
+                  artist: (override['artist'] as String?) ?? song.artist,
+                  album: (override['album'] as String?) ?? song.album,
+                  artworkUrl: (override['artworkUrl'] as String?) ?? song.artworkUrl,
+                  lyricsPath: (override['lyricsPath'] as String?) ?? song.lyricsPath,
+                  duration: overrideDuration ?? song.duration,
+                );
+              }
               
               // メタデータログ出力
               print('[Library] メタデータ取得:');
@@ -347,7 +517,23 @@ class MusicRepositoryImpl implements IMusicRepository {
 
   @override
   Future<void> updateSongMetadata(String songId, Map<String, dynamic> data) async {
-    // 実際のDB更新処理
+    final localPath = data['localPath'] as String?;
+    if (localPath == null || localPath.isEmpty) return;
+
+    final overrides = await _readMetadataOverrides();
+    final existing = overrides[localPath];
+    final normalized = Map<String, dynamic>.from(data);
+    final duration = normalized.remove('duration');
+    if (duration is Duration) {
+      normalized['durationMs'] = duration.inMilliseconds;
+    }
+    final merged = <String, dynamic>{
+      if (existing is Map<String, dynamic>) ...existing,
+      for (final entry in normalized.entries)
+        if (entry.key != 'localPath') entry.key: entry.value,
+    };
+    overrides[localPath] = merged;
+    await _writeMetadataOverrides(overrides);
   }
 
   @override
@@ -359,24 +545,148 @@ class MusicRepositoryImpl implements IMusicRepository {
   Future<void> deleteSong(String songId) async {
     // 楽曲を削除
   }
+
+  @override
+  Future<void> upsertSong(Song song, {int parseState = 1}) async {
+    await LocalMusicDb.instance.upsertSongs([song], parseState: parseState);
+  }
+
+  @override
+  Future<void> upsertSongs(List<Song> songs, {int parseState = 1}) async {
+    await LocalMusicDb.instance.upsertSongs(songs, parseState: parseState);
+  }
+
+  @override
+  Future<Set<String>> getExistingLocalPaths(List<String> paths) async {
+    return LocalMusicDb.instance.getExistingLocalPaths(paths);
+  }
+
+  @override
+  Future<void> clearLibrary() async {
+    await LocalMusicDb.instance.clearLibrary();
+    await ThumbnailStore.clearThumbnails();
+  }
+
+  @override
+  Future<List<String>> getUnparsedFilePaths({int limit = 100}) async {
+    return LocalMusicDb.instance.getUnparsedFilePaths(limit: limit);
+  }
+}
+
+class MusicDbRepositoryImpl implements IMusicRepository {
+  final LocalMusicDb _db = LocalMusicDb.instance;
+
+  @override
+  Future<List<Song>> fetchLibrary() async {
+    return _db.fetchAllSongs();
+  }
+
+  @override
+  Future<Song?> getSongById(String id) async {
+    return _db.getSongById(id);
+  }
+
+  @override
+  Future<void> updateSongMetadata(String songId, Map<String, dynamic> data) async {
+    await _db.updateSongMetadata(songId, data);
+  }
+
+  @override
+  Future<void> updateSongVolumeOffset(String songId, double offsetDb) async {
+    // TODO: add volume offset persistence if needed
+  }
+
+  @override
+  Future<void> deleteSong(String songId) async {
+    await _db.deleteSong(songId);
+  }
+
+  @override
+  Future<void> upsertSong(Song song, {int parseState = 1}) async {
+    await _db.upsertSongs([song], parseState: parseState);
+  }
+
+  @override
+  Future<void> upsertSongs(List<Song> songs, {int parseState = 1}) async {
+    await _db.upsertSongs(songs, parseState: parseState);
+  }
+
+  @override
+  Future<Set<String>> getExistingLocalPaths(List<String> paths) async {
+    return _db.getExistingLocalPaths(paths);
+  }
+
+  @override
+  Future<void> clearLibrary() async {
+    await _db.clearLibrary();
+    await ThumbnailStore.clearThumbnails();
+  }
+
+  @override
+  Future<List<String>> getUnparsedFilePaths({int limit = 100}) async {
+    return _db.getUnparsedFilePaths(limit: limit);
+  }
 }
 
 class PlaylistRepositoryImpl implements IPlaylistRepository {
   final Map<String, Playlist> _playlists = {};
+  static const String _playlistsKey = 'playlists_v1';
+  bool _initialized = false;
+
+  Future<void> _ensureInitialized() async {
+    if (_initialized) return;
+    await _loadFromStorage();
+    _initialized = true;
+  }
+
+  Future<void> _loadFromStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final json = prefs.getString(_playlistsKey);
+      if (json != null) {
+        final data = jsonDecode(json) as Map<String, dynamic>;
+        _playlists.clear();
+        data.forEach((key, value) {
+          try {
+            _playlists[key] = Playlist.fromJson(value);
+          } catch (e) {
+            debugPrint('[PlaylistRepo] Failed to load playlist $key: $e');
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('[PlaylistRepo] Failed to load playlists: $e');
+    }
+  }
+
+  Future<void> _saveToStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final data = <String, dynamic>{};
+      _playlists.forEach((key, value) {
+        data[key] = value.toJson();
+      });
+      await prefs.setString(_playlistsKey, jsonEncode(data));
+    } catch (e) {
+      debugPrint('[PlaylistRepo] Failed to save playlists: $e');
+    }
+  }
 
   @override
   Future<List<Playlist>> fetchAllPlaylists() async {
-    await Future.delayed(const Duration(milliseconds: 100));
+    await _ensureInitialized();
     return _playlists.values.toList();
   }
 
   @override
   Future<Playlist?> getPlaylistById(String id) async {
+    await _ensureInitialized();
     return _playlists[id];
   }
 
   @override
   Future<String> createPlaylist(String name, {String? description}) async {
+    await _ensureInitialized();
     final id = DateTime.now().millisecondsSinceEpoch.toString();
     final playlist = Playlist(
       id: id,
@@ -386,44 +696,52 @@ class PlaylistRepositoryImpl implements IPlaylistRepository {
       createdAt: DateTime.now(),
     );
     _playlists[id] = playlist;
+    await _saveToStorage();
     return id;
   }
 
   @override
   Future<void> updatePlaylistName(String playlistId, String newName) async {
+    await _ensureInitialized();
     final playlist = _playlists[playlistId];
     if (playlist != null) {
       _playlists[playlistId] = playlist.copyWith(
         name: newName,
         updatedAt: DateTime.now(),
       );
+      await _saveToStorage();
     }
   }
 
   @override
   Future<void> addSongToPlaylist(String playlistId, String songId) async {
+    await _ensureInitialized();
     final playlist = _playlists[playlistId];
     if (playlist != null && !playlist.songIds.contains(songId)) {
       _playlists[playlistId] = playlist.copyWith(
         songIds: [...playlist.songIds, songId],
         updatedAt: DateTime.now(),
       );
+      await _saveToStorage();
     }
   }
 
   @override
   Future<void> removeSongFromPlaylist(String playlistId, String songId) async {
+    await _ensureInitialized();
     final playlist = _playlists[playlistId];
     if (playlist != null) {
       _playlists[playlistId] = playlist.copyWith(
         songIds: playlist.songIds.where((id) => id != songId).toList(),
         updatedAt: DateTime.now(),
       );
+      await _saveToStorage();
     }
   }
 
   @override
   Future<void> reorderPlaylist(String playlistId, int fromIndex, int toIndex) async {
+    await _ensureInitialized();
     final playlist = _playlists[playlistId];
     if (playlist != null) {
       final songIds = List<String>.from(playlist.songIds);
@@ -433,12 +751,15 @@ class PlaylistRepositoryImpl implements IPlaylistRepository {
         songIds: songIds,
         updatedAt: DateTime.now(),
       );
+      await _saveToStorage();
     }
   }
 
   @override
   Future<void> deletePlaylist(String playlistId) async {
+    await _ensureInitialized();
     _playlists.remove(playlistId);
+    await _saveToStorage();
   }
 }
 
@@ -480,17 +801,87 @@ class AlbumRepositoryImpl implements IAlbumRepository {
 
 class LocalSettingsRepositoryImpl implements ILocalSettingsRepository {
   AppSettings _currentSettings = AppSettings();
+  static const _themeBackgroundKey = 'theme_background_color';
+  static const _themeTextKey = 'theme_text_color';
+  static const _backgroundImagePathKey = 'background_image_path';
+  static const _backgroundImageScaleKey = 'background_image_scale';
+  static const _backgroundImageOffsetXKey = 'background_image_offset_x';
+  static const _backgroundImageOffsetYKey = 'background_image_offset_y';
+  static const _backgroundImageOpacityKey = 'background_image_opacity';
+  static const _backgroundImageBlurKey = 'background_image_blur';
+  static const _backgroundImageBrightnessKey = 'background_image_brightness';
+  static const _silenceSkipEnabledKey = 'silence_skip_enabled';
+  static const _silenceSkipThresholdKey = 'silence_skip_threshold';
+  static const _showLyricsBackgroundKey = 'show_lyrics_background';
+  static const _lyricsFontSizeKey = 'lyrics_font_size';
+  static const _lyricsContextLinesKey = 'lyrics_context_lines';
+  static const _languageKey = 'app_locale';
 
   @override
   Future<AppSettings> getSettings() async {
     await Future.delayed(const Duration(milliseconds: 100));
+    final prefs = await SharedPreferences.getInstance();
+    final bg = prefs.getInt(_themeBackgroundKey);
+    final text = prefs.getInt(_themeTextKey);
+    final bgImagePath = prefs.getString(_backgroundImagePathKey);
+    final bgImageScale = prefs.getDouble(_backgroundImageScaleKey);
+    final bgImageOffsetX = prefs.getDouble(_backgroundImageOffsetXKey);
+    final bgImageOffsetY = prefs.getDouble(_backgroundImageOffsetYKey);
+    final bgImageOpacity = prefs.getDouble(_backgroundImageOpacityKey);
+    final bgImageBlur = prefs.getDouble(_backgroundImageBlurKey);
+    final bgImageBrightness = prefs.getDouble(_backgroundImageBrightnessKey);
+    final silenceSkipEnabled = prefs.getBool(_silenceSkipEnabledKey);
+    final silenceSkipThreshold = prefs.getInt(_silenceSkipThresholdKey);
+    final showLyricsBackground = prefs.getBool(_showLyricsBackgroundKey);
+    final lyricsFontSize = prefs.getDouble(_lyricsFontSizeKey);
+    final lyricsContextLines = prefs.getInt(_lyricsContextLinesKey);
+    final locale = prefs.getString(_languageKey);
+    _currentSettings = _currentSettings.copyWith(
+      themeBackgroundColor: bg ?? _currentSettings.themeBackgroundColor,
+      themeTextColor: text ?? _currentSettings.themeTextColor,
+      backgroundImagePath: bgImagePath ?? _currentSettings.backgroundImagePath,
+      backgroundImageScale: bgImageScale ?? _currentSettings.backgroundImageScale,
+      backgroundImageOffsetX: bgImageOffsetX ?? _currentSettings.backgroundImageOffsetX,
+      backgroundImageOffsetY: bgImageOffsetY ?? _currentSettings.backgroundImageOffsetY,
+      backgroundImageOpacity: bgImageOpacity ?? _currentSettings.backgroundImageOpacity,
+      backgroundImageBlurSigma: bgImageBlur ?? _currentSettings.backgroundImageBlurSigma,
+      backgroundImageBrightness: bgImageBrightness ?? _currentSettings.backgroundImageBrightness,
+      silenceSkipEnabled: silenceSkipEnabled ?? _currentSettings.silenceSkipEnabled,
+      silenceSkipThreshold: silenceSkipThreshold ?? _currentSettings.silenceSkipThreshold,
+      // update nested lyricsSettings
+      lyricsSettings: _currentSettings.lyricsSettings.copyWith(
+        showBackground: showLyricsBackground ?? _currentSettings.lyricsSettings.showBackground,
+        fontSize: lyricsFontSize ?? _currentSettings.lyricsSettings.fontSize,
+        contextLines: lyricsContextLines ?? _currentSettings.lyricsSettings.contextLines,
+      ),
+      locale: locale ?? _currentSettings.locale,
+    );
     return _currentSettings;
   }
 
   @override
   Future<void> saveSettings(AppSettings settings) async {
     _currentSettings = settings;
-    // 実際はSharedPreferences/Hive等で永続化
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_themeBackgroundKey, settings.themeBackgroundColor);
+    await prefs.setInt(_themeTextKey, settings.themeTextColor);
+    if (settings.backgroundImagePath != null && settings.backgroundImagePath!.isNotEmpty) {
+      await prefs.setString(_backgroundImagePathKey, settings.backgroundImagePath!);
+    } else {
+      await prefs.remove(_backgroundImagePathKey);
+    }
+    await prefs.setDouble(_backgroundImageScaleKey, settings.backgroundImageScale);
+    await prefs.setDouble(_backgroundImageOffsetXKey, settings.backgroundImageOffsetX);
+    await prefs.setDouble(_backgroundImageOffsetYKey, settings.backgroundImageOffsetY);
+    await prefs.setDouble(_backgroundImageOpacityKey, settings.backgroundImageOpacity);
+    await prefs.setDouble(_backgroundImageBlurKey, settings.backgroundImageBlurSigma);
+    await prefs.setDouble(_backgroundImageBrightnessKey, settings.backgroundImageBrightness);
+    await prefs.setBool(_silenceSkipEnabledKey, settings.silenceSkipEnabled);
+    await prefs.setInt(_silenceSkipThresholdKey, settings.silenceSkipThreshold);
+    await prefs.setBool(_showLyricsBackgroundKey, settings.lyricsSettings.showBackground);
+    await prefs.setDouble(_lyricsFontSizeKey, settings.lyricsSettings.fontSize);
+    await prefs.setInt(_lyricsContextLinesKey, settings.lyricsSettings.contextLines);
+    await prefs.setString(_languageKey, settings.locale);
   }
 }
 
@@ -575,7 +966,7 @@ class SearchRepositoryImpl implements ISearchRepository {
 // ============================================================================
 
 final musicRepositoryProvider = Provider<IMusicRepository>((ref) {
-  return MusicRepositoryImpl();
+  return MusicDbRepositoryImpl();
 });
 
 final playlistRepositoryProvider = Provider<IPlaylistRepository>((ref) {
@@ -600,9 +991,7 @@ final searchRepositoryProvider = Provider<ISearchRepository>((ref) {
   return SearchRepositoryImpl(musicRepo, playlistRepo);
 });
 
-final youtubeServiceProvider = Provider<IYouTubeService>((ref) {
-  return YouTubeServiceImpl();
-});
+// YouTube service removed for release builds. Provider intentionally omitted.
 
 final localAudioServiceProvider = Provider<ILocalAudioService>((ref) {
   return LocalAudioServiceImpl();

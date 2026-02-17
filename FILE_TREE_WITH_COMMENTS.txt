@@ -1,0 +1,96 @@
+// ワークスペースのファイルツリー（要約）と各ファイル/フォルダの一言説明
+
+ANALYSIS_RESULTS.txt // ビルド/解析結果の要約
+analyze_m4a_detailed.dart // m4a解析（詳細版）
+analyze_m4a_fixed.dart // m4a解析（修正版）
+analyze_m4a_structure.dart // m4aファイル構造解析
+analyze_sample_files.dart // サンプルファイル解析スクリプト
+Audio_reader.dart // 音声ファイル読み取りユーティリティ
+client_analytics.proto // クライアント分析のprotobuf定義
+l10n_untranslated_pt.txt // 未翻訳のポルトガル語リスト
+l10n.yaml // 国際化設定ファイル
+pubspec.yaml // Flutter/Dart依存関係とメタデータ
+README.md // プロジェクトの概要ドキュメント
+test_metadata.dart // テスト用メタデータスクリプト
+test_utf16_fix.dart // UTF-16修正用テストスクリプト
+
+android/ // Android用ビルド設定とネイティブコード
+android/build.gradle.kts // AndroidルートのGradle設定
+android/local.properties // Androidローカル環境設定
+android/gradle/ // Gradleラッパー設定
+
+app/ // Androidアプリモジュール（Gradle構成等）
+
+assets/ // 実行時アセット（画像・サンプル等）
+assets/dexopt/ // dex最適化データ
+
+build/ // ビルド出力
+
+ios/ // iOS用ビルド設定とXcodeプロジェクト
+
+kotlin/ // Kotlinランタイム補助ファイル
+
+lib/ // アプリ本体のDartソース
+lib/_t_occurrences.txt // 一時ファイル（使用頻度集計等）
+lib/main_new.dart // 代替エントリ（作業用）
+lib/main.dart // アプリのエントリーポイント
+lib/テスト.txt // テスト用テキスト
+
+lib/core/ // コア共有ロジック
+lib/core/app_constants.dart // 定数定義
+lib/core/failure.dart // エラー/失敗表現
+
+lib/data/ // データ層（サービス・DB・リポジトリ）
+lib/data/audio_service.dart // オーディオ再生サービスラッパー
+lib/data/local_audio_service.dart // ローカル再生実装
+lib/data/local_music_db.dart // ローカル音楽データベース操作
+lib/data/lrc_service.dart // 歌詞（LRC）管理サービス
+lib/data/repositories.dart // データリポジトリ集約
+lib/data/thumbnail_store.dart // サムネイル保存管理
+lib/data/youtube_service.dart // YouTube関連サービス
+
+lib/domain/ // ドメイン層（エンティティ・ユースケース）
+lib/domain/entities.dart // ドメインエンティティ定義
+lib/domain/usecases.dart // ユースケース実装
+
+lib/l10n/ // 国際化リソースと生成コード
+lib/l10n/app_*.arb // 翻訳リソース
+lib/l10n/app_localizations_*.dart // 生成済みローカライズコード
+
+lib/platform/ // プラットフォーム別実装（プラグインラッパ等）
+
+lib/presentation/ // プレゼンテーション層（ViewModelsなど）
+lib/presentation/viewmodels.dart // RiverpodのViewModel群（状態管理）
+
+lib/ui/ // UI関連（画面・ヘルパー）
+lib/ui/app_ui.dart // アプリ全体のUIパーツとパート定義
+lib/ui/app_helpers.dart // 汎用UIヘルパー（以前のクロッパー呼び出し等）
+lib/ui/app_messages.dart // メッセージ表示ユーティリティ
+lib/ui/app_root.dart // アプリのルートウィジェット
+lib/ui/top_message_host.dart // トップ通知ホスト
+lib/ui/main_screen.dart // メイン画面実装
+lib/ui/animated_marquee.dart // アニメーションテキスト（マルキュ）
+lib/ui/mini_player.dart // ミニプレーヤーウィジェット
+lib/ui/full_player/full_player_screen.dart // フルプレーヤー画面
+lib/ui/full_player/full_player_helpers.dart // フルプレーヤー補助関数
+lib/ui/full_player/lyrics_list_view.dart // 歌詞表示リスト
+lib/ui/full_player/artwork_image.dart // アートワーク描画ウィジェット
+lib/ui/full_player/queue_view.dart // 再生キュー表示
+lib/ui/lrc/lrc_adjust_screen.dart // 歌詞タイミング調整画面
+lib/ui/library/library_dialogs.dart // ライブラリ系ダイアログ
+lib/ui/library/category_detail_screen.dart // カテゴリ詳細画面
+lib/ui/settings/settings_tab.dart // 設定タブ（フォントサイズ等）
+lib/ui/thumbnail_crop_screen.dart // カスタムサムネイルプレビュー／クロップ画面
+lib/ui/app_helpers.dart // アプリ共通ヘルパー（再掲）
+
+lib/widgets/ // 再利用ウィジェット
+lib/widgets/background_widgets.dart // 背景画像の編集・描画ウィジェット
+
+linux/ // Linuxビルド設定
+macos/ // macOSビルド設定
+web/ // Web用リソース（index.html等）
+web/index.html // Webエントリ
+windows/ // Windowsビルド設定
+
+// 注意: 上記はワークスペースの主要ファイル/フォルダの抜粋です。
+// 実際のファイルツリーは細かいファイルや生成物でさらに多くのファイルが含まれます。

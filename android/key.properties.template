@@ -1,0 +1,10 @@
+# Android signing key properties template
+# このファイルをコピーして `android/key.properties` として保存し
+# 各値を実際のパス/パスワードに置き換えてください。
+
+storePassword=YOUR_STORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=key0
+storeFile=keystore.jks
+
+# 注: `storeFile` は `android/` フォルダからの相対パスです。

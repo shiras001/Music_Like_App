@@ -1,0 +1,368 @@
+{
+  "@@locale": "en",
+  "appTitle": "Music Like",
+  "commonCancel": "Cancel",
+  "commonSave": "Save",
+  "commonClose": "Close",
+  "commonDetails": "Details",
+  "commonDelete": "Delete",
+  "commonApply": "Apply",
+  "commonReset": "Reset",
+  "commonPlay": "Play",
+  "commonShuffle": "Shuffle",
+  "commonSearch": "Search",
+  "commonSort": "Sort",
+  "commonEdit": "Edit",
+  "commonRetry": "Retry",
+  "commonSaveChanges": "Save",
+  "tabSongs": "Songs",
+  "tabArtists": "Artists",
+  "tabAlbums": "Albums",
+  "tabPlaylists": "Playlists",
+  "drawerSettings": "Settings",
+  "drawerEditCategories": "Edit categories",
+  "drawerSort": "Sort",
+  "libraryLoadFailed": "Failed to load library",
+  "libraryReload": "Reload",
+  "errorDetailsTitle": "Error details",
+  "errorClose": "Close",
+  "searchHint": "Song, artist, or album",
+  "categoryEditTitle": "Edit categories",
+  "categorySongs": "Songs",
+  "categoryArtists": "Artists",
+  "categoryAlbums": "Albums",
+  "categoryPlaylists": "Playlists",
+  "sortTitleAsc": "Title (A-Z)",
+  "sortTitleDesc": "Title (Z-A)",
+  "sortArtistAsc": "Artist (A-Z)",
+  "sortArtistDesc": "Artist (Z-A)",
+  "sortDurationAsc": "Duration (shorter)",
+  "sortDurationDesc": "Duration (longer)",
+  "noSongs": "No songs",
+  "noArtists": "No artists",
+  "noAlbums": "No albums",
+  "noPlaylists": "No playlists",
+  "noResults": "No results",
+  "songCount": "{count, plural, =0{0 songs} =1{1 song} other{{count} songs}}",
+  "@songCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "artistSongCount": "{artist} • {count, plural, =1{1 song} other{{count} songs}}",
+  "@artistSongCount": {
+    "placeholders": {
+      "artist": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchTitle": "Search",
+  "searchPrompt": "Search by song, artist, or album",
+  "sectionSongs": "Songs",
+  "sectionArtists": "Artists",
+  "sectionAlbums": "Albums",
+  "sectionPlaylists": "Playlists",
+  "queueUpNext": "Up Next",
+  "queueEmpty": "Queue is empty",
+  "removedFromQueue": "Removed \"{songName}\" from queue",
+  "@removedFromQueue": {
+    "placeholders": {
+      "songName": {
+        "type": "String"
+      }
+    }
+  },
+  "playNext": "Play Next",
+  "addedPlayNext": "Added \"{songName}\" to Play Next",
+  "@addedPlayNext": {
+    "placeholders": {
+      "songName": {
+        "type": "String"
+      }
+    }
+  },
+  "addedToQueue": "Added to queue",
+  "addToPlaylist": "Add to playlist",
+  "addToPlaylistTitle": "Add to playlist",
+  "createNewPlaylist": "Create new playlist",
+  "existingPlaylists": "Existing playlists",
+  "createPlaylist": "Create playlist",
+  "playlistNameHint": "Enter playlist name",
+  "playlistCreated": "Playlist created",
+  "addedToPlaylist": "Added to playlist",
+  "editLyrics": "Edit lyrics",
+  "editLyricsLrc": "Edit lyrics (LRC)",
+  "editManually": "Edit manually",
+  "adjustTiming": "Adjust timing",
+  "lyricsFileNotFound": "Lyrics file not found",
+  "lyricsNoDestination": "No destination for lyrics file",
+  "lyricsSaved": "Lyrics saved",
+  "lyricsSaveFailed": "Failed to save lyrics: {error}",
+  "@lyricsSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "lrcHint": "[00:12.34]Lyrics text",
+  "editSongInfo": "Edit song info",
+  "artworkLabel": "Artwork",
+  "selectImage": "Select image",
+  "changeImage": "Change image",
+  "titleLabel": "Title",
+  "artistLabel": "Artist",
+  "albumLabel": "Album",
+  "songUpdated": "Song updated",
+  "artworkSaveFailed": "Failed to save artwork: {error}",
+  "@artworkSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "metadataSaved": "Metadata saved",
+  "categoryDetailPlay": "Play",
+  "categoryDetailShuffle": "Shuffle",
+  "settingsTitle": "Settings",
+  "themeTitle": "Theme",
+  "textColor": "Text color",
+  "backgroundColor": "Background color",
+  "selectTextColor": "Select text color",
+  "selectBackgroundColor": "Select background color",
+  "backgroundImage": "Background image",
+  "notSet": "Not set",
+  "removeBackgroundImage": "Remove background image",
+  "adjustBackgroundImage": "Adjust background image",
+  "adjustBackgroundImageDesc": "Pinch to zoom and move",
+  "cropThumbnail": "Crop Thumbnail",
+  "adjustThumbnail": "Adjust Thumbnail",
+  "backgroundOpacity": "Opacity",
+  "backgroundBlur": "Blur",
+  "language": "Language",
+  "selectLanguage": "Select language",
+  "languageSystem": "System language",
+  "languageJapanese": "Japanese",
+  "languageEnglish": "English",
+  "languageKorean": "Korean",
+  "languageGerman": "German",
+  "languageFrench": "French",
+  "languageChineseSimplified": "Chinese (Simplified)",
+  "languageChineseTraditional": "Chinese (Traditional)",
+  "languageSpanish": "Spanish",
+  "languagePortugueseBrazil": "Portuguese (Brazil)",
+  "languageRussian": "Russian",
+  "lyricsDisplayTitle": "Lyrics display",
+  "lyricsFontSize": "Font size: {size}",
+  "@lyricsFontSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "lyricsContextLines": "Lines to show (including current): {count}",
+  "@lyricsContextLines": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "showArtworkBackground": "Show artwork in background",
+  "showArtworkBackgroundDesc": "Show album artwork behind lyrics",
+  "playbackTitle": "Playback",
+  "skipSilence": "Skip silence",
+  "skipSilenceDesc": "Skip silent parts at start/end",
+  "silenceThreshold": "Threshold: {ms}ms",
+  "@silenceThreshold": {
+    "placeholders": {
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
+  "localFilesTitle": "Local files",
+  "importFiles": "Import files",
+  "importFolder": "Import folder",
+  "importing": "Importing...",
+  "importCount": "{processed}/{total}",
+  "@importCount": {
+    "placeholders": {
+      "processed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "clearLibraryTitle": "Clear library",
+  "clearLibraryConfirm": "All local files will be removed.\nThis action cannot be undone.\nAre you sure?",
+  "libraryCleared": "Library cleared",
+  "duplicateDetection": "Duplicate detection",
+  "duplicateDetectionDesc": "Remove older files",
+  "supportedFormatsTitle": "Supported formats",
+  "audioFormatsTitle": "Audio formats",
+  "lyricsFormatsTitle": "Lyrics format",
+  "lyricsFormatsDesc": "LRC (time-synced lyrics)",
+  "supportedQualityTitle": "Supported quality",
+  "supportedQualityDesc": "Lossless, Dolby Atmos",
+  "lrcAdjustTitle": "LRC adjust",
+  "selectSong": "Select a song",
+  "offsetLabel": "Offset: {value}",
+  "@offsetLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "applyChanges": "Apply changes",
+  "restore": "Restore",
+  "previewTitle": "Preview (first 30 lines)",
+  "lrcFileNotFound": "LRC file not found",
+  "loadError": "Load error: {error}",
+  "@loadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "offset": "Offset",
+  "apply": "Apply",
+  "reset": "Reset",
+  "noLrcFileFound": "No LRC file found",
+  "upNext": "Up Next",
+  "close": "Close",
+  "queueIsEmpty": "Queue is empty",
+  "selectASong": "Select a song",
+  "play": "Play",
+  "applyChanges2": "Apply changes",
+  "restore2": "Restore",
+  "previewFirst30Lines": "Preview (first 30 lines)",
+  "customColor": "Custom color",
+  "darkMode": "Dark mode",
+  "appLanguage": "App language",
+  "followSystemSetting": "System language",
+  "save": "Save",
+  "cancel": "Cancel",
+  "change": "Change",
+  "selectLanguage2": "Select language",
+  "confirm": "Confirm",
+  "execute": "Execute",
+  "noData": "No data",
+  "error": "Error",
+  "delete": "Delete",
+  "search": "Search",
+  "artist": "Artist",
+  "tracks": "Tracks",
+  "albums": "Albums",
+  "createPlaylist2": "Create playlist",
+  "playpause": "Play/Pause",
+  "next": "Next",
+  "previous": "Previous",
+  "collection": "Collection",
+  "artistTrackAlbum": "Artist, track, album",
+  "welcome": "Welcome",
+  "getStarted": "Get started",
+  "showDebugInfo": "Show debug info",
+  "clear": "Clear",
+  "clearCache": "Clear cache",
+  "yes": "Yes",
+  "no": "No",
+  "switchTheme": "Switch theme",
+  "light": "Light",
+  "dark": "Dark",
+  "system": "System",
+  "play2": "Play",
+  "playQueue": "Play queue",
+  "remove": "Remove",
+  "migrateSettingsFromOlderVersions": "Migrate settings from older versions",
+  "tracks2": "Tracks",
+  "anErrorOccurred": "An error occurred",
+  "loading": "Loading...",
+  "offlineMode": "Offline mode",
+  "downloaded": "Downloaded",
+  "youtube": "YouTube audio extraction",
+  "youtubeurl": "No YouTube URL found in clipboard",
+  "youtube2": "Convert from YouTube to audio file",
+  "k320Kbps": "320 kbps",
+  "k441Khz": "44.1 kHz",
+  "mp3M4aFlacWavAiff": "MP3, M4A, FLAC, WAV, AIFF",
+  "noLyrics": "No lyrics",
+  "playbackSpeed": "Playback speed",
+  "loadingLyrics": "Loading lyrics...",
+  "artistLabel": "Artist",
+  "backgroundCustomize": "Background customize",
+  "selectImageFirst": "Please select an image first",
+  "backgroundSet": "Background set",
+  "backgroundSetFailed": "Failed to set background",
+  "thumbnailPreview": "Preview thumbnail",
+  "lossless": "Lossless",
+  "audioConversionConfirm": "Confirm audio conversion",
+  "confirmDownloadAudioFromVideo": "Download audio from this video?",
+  "download": "Download",
+  "videotitle": "Started downloading \"$videoTitle\"...",
+  "videotitle2": "Finished downloading \"$videoTitle\"!",
+  "videotitle3": "Failed to download \"$videoTitle\"",
+  "downloadCompletedFileNotFound": "Download completed but file not found",
+  "downloadCompletedPathUnknown": "Download completed but file path unknown",
+  "clipboardEmpty": "Clipboard is empty",
+  "outputformat": "Output format",
+  "selectOutputFormat": "Select output format",
+  "bitrate": "Bitrate",
+  "samplingRate": "Sampling rate",
+  "e": "Error: $e",
+  "m123": "Crop failed: $e",
+  "channelname": "Channel: $channelName",
+  "error4": "Download error: $error",
+  "@e": {
+    "placeholders": {
+      "e": { "type": "String" }
+    }
+  },
+  "@m123": {
+    "placeholders": {
+      "e": { "type": "String" }
+    }
+  },
+  "@channelname": {
+    "placeholders": {
+      "channelName": { "type": "String" }
+    }
+  },
+  "@error4": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "import": "Import",
+  "export": "Export",
+  "nowPlaying": "Now playing",
+  "param": "{processed}/{total}",
+  "@param": {
+    "placeholders": {
+      "processed": {},
+      "total": {}
+    }
+  },
+  "nowPlaying2": "Now Playing",
+  "noSongPlaying": "No song playing",
+  "dolbyAtmos": "Dolby Atmos",
+  "k075": "0.75×",
+  "k09": "0.9×",
+  "k10": "1.0×",
+  "k11": "1.1×",
+  "k125": "1.25×",
+  "k15": "1.5×",
+  "k20": "2.0×"
+}

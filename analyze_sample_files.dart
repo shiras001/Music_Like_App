@@ -41,9 +41,7 @@ void analyzeMP3(List<int> bytes, String filePath) {
   print('[MP3 解析] ファイルサイズ: ${bytes.length} bytes');
 
   // ID3v2 タグを探索
-  int id3Start = -1;
   if (bytes.length > 10 && bytes[0] == 0x49 && bytes[1] == 0x44 && bytes[2] == 0x33) {
-    id3Start = 0;
     final version = bytes[3];
     final tagSize = ((bytes[6] & 0x7F) << 21) | ((bytes[7] & 0x7F) << 14) | ((bytes[8] & 0x7F) << 7) | (bytes[9] & 0x7F);
     print('ID3v2.$version タグ発見: 開始位置=0, サイズ=$tagSize');
@@ -123,7 +121,6 @@ void analyzeMP3(List<int> bytes, String filePath) {
       final layerBits = (bytes[i + 1] >> 1) & 0x03;
       final bitrateIndex = (bytes[i + 2] >> 4) & 0x0F;
       final srIndex = (bytes[i + 2] >> 2) & 0x03;
-      final padding = (bytes[i + 2] >> 1) & 0x01;
 
       print('フレーム#$frameCount @ 位置 $i:');
       print('  version=$versionBits, layer=$layerBits, bitrateIdx=$bitrateIndex, srIdx=$srIndex');
