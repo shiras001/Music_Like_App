@@ -2,7 +2,7 @@ name: music_like
 description: MUSIC LIKE - Apple Music ライク音楽ストリーミングアプリ
 publish_to: 'none'
 
-version: 0.0.1+2
+version: 0.0.1+3
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
