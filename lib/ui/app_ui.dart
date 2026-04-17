@@ -26,6 +26,12 @@ import '../presentation/viewmodels.dart';
 import '../widgets/background_widgets.dart';
 import 'thumbnail_crop_screen.dart';
 
+class RewardUnlockService {
+	static Future<bool> ensureUnlocked(BuildContext context, String actionLabel) async {
+		return true;
+	}
+}
+
 part 'app_helpers.dart';
 part 'app_messages.dart';
 part 'app_root.dart';
