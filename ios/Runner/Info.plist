@@ -48,8 +48,9 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
-		<string>processing</string>
 	</array>
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-3940256099942544~1458002511</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>This app requires access to your local network to play audio from local files.</string>
 	<key>NSBonjourServices</key>
