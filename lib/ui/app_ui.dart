@@ -26,12 +26,6 @@ import '../presentation/viewmodels.dart';
 import '../widgets/background_widgets.dart';
 import 'thumbnail_crop_screen.dart';
 
-class RewardUnlockService {
-	static Future<bool> ensureUnlocked(BuildContext context, String actionLabel) async {
-		return true;
-	}
-}
-
 part 'app_helpers.dart';
 part 'app_messages.dart';
 part 'app_root.dart';
@@ -54,3 +48,9 @@ part 'settings/settings_helpers.dart';
 part 'settings/settings_actions.dart';
 part 'lrc/lrc_adjust_screen.dart';
 part 'widgets/seek_bar.dart';
+
+class RewardUnlockService {
+	static Future<bool> ensureUnlocked(BuildContext context, String actionLabel) async {
+		return true;
+	}
+}
