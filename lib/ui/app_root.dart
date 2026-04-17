@@ -2,7 +2,6 @@ part of 'app_ui.dart';
 
 bool _notificationRequestScheduled = false;
 bool _audioServiceInitScheduled = false;
-bool _adsInitScheduled = false;
 
 /// アプリ全体のルートウィジェット
 class MusicLikeApp extends ConsumerWidget {
@@ -33,12 +32,6 @@ class MusicLikeApp extends ConsumerWidget {
       _audioServiceInitScheduled = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(playerViewModelProvider.notifier).ensureAudioServiceInitialized();
-      });
-    }
-    if (!_adsInitScheduled) {
-      _adsInitScheduled = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        AdService.instance.initialize();
       });
     }
     // AudioService は PlayerViewModel 側の ensureAudioServiceInitialized()

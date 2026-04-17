@@ -295,9 +295,8 @@ mixin _LibraryTabHelpers on ConsumerState<_LibraryTab> {
             ListTile(
               leading: const Icon(Icons.settings),
               title: Text(l10n.drawerSettings),
-              onTap: () async {
+              onTap: () {
                 Navigator.pop(context);
-                await AdService.instance.showSettingsInterstitialIfEligible();
                 Navigator.push(
                   context,
                   _buildSmoothRoute(const _SettingsTab()),

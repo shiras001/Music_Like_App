@@ -9,20 +9,10 @@ extension _LibraryTabViews on _LibraryTabState {
       );
     }
 
-    const adInterval = 10;
-    final adUnitId = AdConfig.nativeAdUnitId();
-    final adStride = adInterval + 1;
-    final adCount = adUnitId == null ? 0 : (songs.length ~/ adInterval);
-
     return ListView.builder(
-      itemCount: songs.length + adCount,
+      itemCount: songs.length,
       itemBuilder: (context, index) {
-        if (adUnitId != null && (index + 1) % adStride == 0) {
-          return _NativeAdTile(adUnitId: adUnitId);
-        }
-        final adsBefore = adUnitId == null ? 0 : (index ~/ adStride);
-        final songIndex = index - adsBefore;
-        final song = songs[songIndex];
+        final song = songs[index];
         return ListTile(
           leading: Container(
             width: 50,
@@ -46,11 +36,11 @@ extension _LibraryTabViews on _LibraryTabState {
             _tapFeedback(context);
             ref
                 .read(playerViewModelProvider.notifier)
-                .setQueue(songs, startIndex: songIndex, autoPlay: true);
+                .setQueue(songs, startIndex: index, autoPlay: true);
           },
           onLongPress: () {
             _tapFeedback(context);
-            _showSongContextMenu(context, song, songs, songIndex);
+            _showSongContextMenu(context, song, songs, index);
           },
         );
       },
