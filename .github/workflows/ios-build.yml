@@ -20,25 +20,43 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Flutter Clean
+        run: flutter clean
+
       - name: Flutter Pub Get
         run: flutter pub get
 
       - name: Install CocoaPods (clean cache)
         run: |
           cd ios
-          rm -f Podfile.lock
+          rm -rf Pods Podfile.lock
+          rm -rf Flutter/Flutter.podspec Flutter/Flutter.framework
           pod deintegrate || true
           pod repo update
           pod install
 
       - name: Clear iOS build cache
         run: |
-          rm -rf build/ios
-          rm -rf ~/Library/Developer/Xcode/DerivedData/*Runner*
+          rm -rf build/
+          rm -rf ~/Library/Developer/Xcode/DerivedData/
+          rm -rf ios/Flutter/Flutter.podspec
+          rm -rf ios/Flutter/Flutter.framework
+          rm -rf ios/.symlinks/
 
       - name: Build iOS (no codesign)
         run: |
           cd ios
+          xcodebuild \
+            -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath ../build/ios \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="" \
+            clean
           xcodebuild \
             -workspace Runner.xcworkspace \
             -scheme Runner \
