@@ -2,6 +2,9 @@ name: Build iOS IPA (Unsigned)
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - ipa-build-temp
 
 jobs:
   build-ios:
