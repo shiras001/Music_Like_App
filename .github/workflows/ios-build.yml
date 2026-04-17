@@ -23,10 +23,18 @@ jobs:
       - name: Flutter Pub Get
         run: flutter pub get
 
-      - name: Install CocoaPods
+      - name: Install CocoaPods (clean cache)
         run: |
           cd ios
+          rm -f Podfile.lock
+          pod deintegrate || true
+          pod repo update
           pod install
+
+      - name: Clear iOS build cache
+        run: |
+          rm -rf build/ios
+          rm -rf ~/Library/Developer/Xcode/DerivedData/*Runner*
 
       - name: Build iOS (no codesign)
         run: |
