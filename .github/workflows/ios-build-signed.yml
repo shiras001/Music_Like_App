@@ -1,0 +1,68 @@
+name: Build iOS IPA (Signed)
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - ipa-build-temp
+
+jobs:
+  build-ipa-signed:
+    name: Build signed iOS IPA
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          cd ios || exit 0
+          if [ -f Podfile ]; then
+            pod install --repo-update
+          fi
+
+      - name: Import code signing materials
+        # Set these repository secrets before running:
+        # IOS_P12_BASE64, IOS_P12_PASSWORD, IOS_PROVISIONING_PROFILE_BASE64
+        uses: apple-actions/import-codesign-certs@v1
+        with:
+          p12-base64: ${{ secrets.IOS_P12_BASE64 }}
+          p12-password: ${{ secrets.IOS_P12_PASSWORD }}
+          provisioning-profile-base64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+
+      - name: Ensure ExportOptions.plist
+        run: |
+          if [ ! -f ios/ExportOptions.plist ]; then
+            cat > ios/ExportOptions.plist <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>method</key>
+  <string>ad-hoc</string>
+  <key>uploadBitcode</key>
+  <false/>
+  <key>compileBitcode</key>
+  <false/>
+</dict>
+</plist>
+EOF
+          fi
+
+      - name: Build IPA (signed)
+        run: |
+          flutter build ipa --export-options-plist=ios/ExportOptions.plist
+
+      - name: Upload signed IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa-signed
+          path: build/ios/ipa/*.ipa
