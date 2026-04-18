@@ -363,7 +363,11 @@ class LocalFileImportUseCase {
         fileFormat: _getFileFormat(filePath),
         localPath: filePath,
         isLocal: true,
-        lyricsPath: metadata.lyrics.isNotEmpty ? filePath.replaceAll(RegExp(r'\.[^.]*$'), '.lrc') : null,
+        lyricsPath: metadata.lyrics.isNotEmpty
+            ? (File(LocalAudioServiceImpl.buildLrcPath(filePath)).existsSync()
+                ? LocalAudioServiceImpl.buildLrcPath(filePath)
+                : null)
+            : null,
       );
       await _musicRepo.upsertSong(song);
       return song;

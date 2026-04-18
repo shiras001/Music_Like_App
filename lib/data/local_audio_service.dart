@@ -884,9 +884,18 @@ class LocalAudioServiceImpl implements ILocalAudioService {
 
   /// LRC ファイルのパスを構築
   static String buildLrcPath(String audioFilePath) {
-    final dir = path.dirname(audioFilePath);
+    final audioDir = path.dirname(audioFilePath);
+    final normalizedDir = path.normalize(audioDir).replaceAll('\\', '/');
     final nameWithoutExt = getFileNameWithoutExtension(audioFilePath);
-    return path.join(dir, '$nameWithoutExt$lyricsExtension');
+
+    // iOS向け: .../MUSIC LIKE/library 配下の音源は
+    // .../MUSIC LIKE/LRC 配下の同名LRCを参照する。
+    if (normalizedDir.endsWith('/MUSIC LIKE/library')) {
+      final appRootDir = path.dirname(audioDir);
+      return path.join(appRootDir, 'LRC', '$nameWithoutExt$lyricsExtension');
+    }
+
+    return path.join(audioDir, '$nameWithoutExt$lyricsExtension');
   }
 
   /// 拡張子のチェック

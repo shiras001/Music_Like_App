@@ -271,24 +271,32 @@ class MusicRepositoryImpl implements IMusicRepository {
     try {
       final metadataOverrides = await _readMetadataOverrides();
 
-      // アプリ専用ディレクトリの Music フォルダをスキャン
+      // アプリ専用ディレクトリの MUSIC LIKE/library をスキャン
       final appDocDir = Directory(
         (await getApplicationDocumentsDirectory()).path,
       );
-      final musicDir = Directory('${appDocDir.path}/Music');
-      
-      if (!await musicDir.exists()) {
-        // ディレクトリがまだ作成されていない場合は空リストを返す
-        return [];
+      final appRootDir = Directory(p.join(appDocDir.path, 'MUSIC LIKE'));
+      final libraryDir = Directory(p.join(appRootDir.path, 'library'));
+      final lrcDir = Directory(p.join(appRootDir.path, 'LRC'));
+
+      // 初回起動時にも所定のディレクトリ構成を作成しておく
+      if (!await appRootDir.exists()) {
+        await appRootDir.create(recursive: true);
+      }
+      if (!await libraryDir.exists()) {
+        await libraryDir.create(recursive: true);
+      }
+      if (!await lrcDir.exists()) {
+        await lrcDir.create(recursive: true);
       }
       
       final songs = <Song>[];
       int songCounter = 0;
       
       try {
-        // Music ディレクトリ内の音声ファイルを列挙
+        // library ディレクトリ内の音声ファイルを列挙
         final localService = LocalAudioServiceImpl();
-        await for (final entity in musicDir.list()) {
+        await for (final entity in libraryDir.list()) {
           if (entity is File) {
             final fileName = entity.path.split('/').last;
             final extension = fileName.split('.').last.toLowerCase();
@@ -369,10 +377,9 @@ class MusicRepositoryImpl implements IMusicRepository {
               // determine lyrics path (if exists)
               String? lyricsPath;
               try {
-                final audioDir = p.dirname(localPath);
                 final baseName = p.basenameWithoutExtension(localPath);
-                final lrcCandidate = p.join(audioDir, '$baseName.lrc');
-                final lrcCandidateUpper = p.join(audioDir, '$baseName.LRC');
+                final lrcCandidate = p.join(lrcDir.path, '$baseName.lrc');
+                final lrcCandidateUpper = p.join(lrcDir.path, '$baseName.LRC');
                 
                 if (File(lrcCandidate).existsSync()) {
                   lyricsPath = lrcCandidate;
@@ -381,7 +388,7 @@ class MusicRepositoryImpl implements IMusicRepository {
                   lyricsPath = lrcCandidateUpper;
                   debugPrint('[LRC検出] 大文字: $lrcCandidateUpper');
                 } else {
-                  final dir = Directory(audioDir);
+                  final dir = Directory(lrcDir.path);
                   if (dir.existsSync()) {
                     // より柔軟な名前マッチング
                     for (final entity in dir.listSync()) {
@@ -408,44 +415,6 @@ class MusicRepositoryImpl implements IMusicRepository {
                 }
               } catch (e) {
                 debugPrint('[LRC検出エラー] $e');
-              }
-
-              // If we found a lyrics file but it's not located in the same
-              // directory as the audio file, copy it into the audio directory
-              // so the app can always reference a local lyrics file adjacent
-              // to the audio file.
-              try {
-                if (lyricsPath != null) {
-                  final audioDir = p.dirname(localPath);
-                  final lyricsDir = p.dirname(lyricsPath);
-                  if (p.normalize(audioDir) != p.normalize(lyricsDir)) {
-                    final destName = p.basename(lyricsPath).toLowerCase().endsWith('.lrc')
-                        ? p.basename(lyricsPath)
-                        : '${p.basenameWithoutExtension(lyricsPath)}.lrc';
-                    var destPath = p.join(audioDir, destName);
-
-                    // If destination already exists, try to avoid overwriting by
-                    // appending an index.
-                    int idx = 1;
-                    while (File(destPath).existsSync()) {
-                      final nameOnly = p.basenameWithoutExtension(destName);
-                      final ext = p.extension(destName);
-                      destPath = p.join(audioDir, '${nameOnly}_$idx$ext');
-                      idx++;
-                      if (idx > 10) break;
-                    }
-
-                    try {
-                      await File(lyricsPath).copy(destPath);
-                      lyricsPath = destPath;
-                      debugPrint('[LRCコピー] $lyricsPath にコピーしました');
-                    } catch (e) {
-                      debugPrint('[LRCコピー失敗] $e');
-                    }
-                  }
-                }
-              } catch (e) {
-                debugPrint('[LRCコピー処理エラー] $e');
               }
 
               var song = Song(
