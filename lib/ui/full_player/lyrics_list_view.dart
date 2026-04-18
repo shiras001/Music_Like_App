@@ -37,6 +37,7 @@ class _LyricsListView extends StatefulWidget {
 class _LyricsListViewState extends State<_LyricsListView> {
   late ScrollController _scrollController;
   bool _userScrolling = false;
+  bool _programmaticScrolling = false;
   List<GlobalKey> _lineKeys = [];
   final GlobalKey _listKey = GlobalKey();
 
@@ -73,7 +74,7 @@ class _LyricsListViewState extends State<_LyricsListView> {
     }
   }
 
-  void _scrollToCurrent({bool animate = true}) {
+  Future<void> _scrollToCurrent({bool animate = true}) async {
     if (widget.currentIndex >= 0 && widget.currentIndex < _lineKeys.length) {
       final itemCtx = _lineKeys[widget.currentIndex].currentContext;
       final listCtx = _listKey.currentContext;
@@ -91,12 +92,17 @@ class _LyricsListViewState extends State<_LyricsListView> {
           final maxScroll = _scrollController.position.maxScrollExtent;
           if (target < 0) target = 0;
           if (target > maxScroll) target = maxScroll;
+          if ((_scrollController.offset - target).abs() < 1.0) return;
+          _programmaticScrolling = true;
           if (animate) {
-            _scrollController.animateTo(target, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+            await _scrollController.animateTo(target, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
           } else {
             _scrollController.jumpTo(target);
           }
-        } catch (_) {}
+        } catch (_) {
+        } finally {
+          _programmaticScrolling = false;
+        }
       }
     }
   }
@@ -111,13 +117,14 @@ class _LyricsListViewState extends State<_LyricsListView> {
   Widget build(BuildContext context) {
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
+        if (_programmaticScrolling) return false;
         if (notification is ScrollStartNotification) {
           _userScrolling = true;
         } else if (notification is ScrollEndNotification) {
           _userScrolling = false;
-          // 自動送りは常時有効: スクロール終了時に現在行へ再同期
-          if (widget.currentIndex >= 0 && _scrollController.hasClients) {
-            _scrollToCurrent();
+          // ユーザー操作終了後、自動送りが有効なときのみ現在行へ再同期
+          if (widget.autoScroll && widget.currentIndex >= 0 && _scrollController.hasClients) {
+            Future.microtask(() => _scrollToCurrent(animate: false));
           }
         }
         return false;

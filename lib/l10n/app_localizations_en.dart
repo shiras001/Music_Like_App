@@ -802,4 +802,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get k20 => '2.0×';
+
+  @override
+  String get exportToDownloadsDesc =>
+      'Save to download folder with a new name.';
+
+  @override
+  String get exportLrcButton => 'Download LRC';
+
+  @override
+  String get exportAudioButton => 'Download audio';
+
+  @override
+  String exportLrcSuccess(String fileName) {
+    return 'Downloaded $fileName';
+  }
+
+  @override
+  String exportAudioSuccess(String fileName) {
+    return 'Downloaded $fileName';
+  }
+
+  @override
+  String get exportLrcFailed => 'Failed to download LRC';
+
+  @override
+  String get exportAudioFailed => 'Failed to download audio';
+
+  @override
+  String get exportNoFile => 'No file';
 }

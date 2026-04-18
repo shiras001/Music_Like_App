@@ -7,6 +7,27 @@ part of '../app_ui.dart';
 class _SettingsTab extends ConsumerWidget {
   const _SettingsTab();
 
+  String _formatDate(DateTime? dt) {
+    if (dt == null) return '-';
+    final y = dt.year.toString().padLeft(4, '0');
+    final m = dt.month.toString().padLeft(2, '0');
+    final d = dt.day.toString().padLeft(2, '0');
+    return '$y/$m/$d';
+  }
+
+  Future<void> _openSubscriptionCenter(BuildContext context) async {
+    final uri = Uri.parse(
+      'https://play.google.com/store/account/subscriptions?sku=${PlaySubscriptionService.monthlyProductId}&package=com.likelife.musiclike',
+    );
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!context.mounted) return;
+    if (!opened) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('定期購読管理ページを開けませんでした')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
@@ -22,6 +43,91 @@ class _SettingsTab extends ConsumerWidget {
       body: ListView(
         children: [
           // YouTubeダウンロード機能は削除済み。UIは表示しません。
+
+          // ============================================================================
+          // 定期購読セクション
+          // ============================================================================
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(
+              '定期購読',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+          ),
+          FutureBuilder<SubscriptionInfo>(
+            future: PlaySubscriptionService.instance.getSubscriptionInfo(),
+            builder: (context, snapshot) {
+              final info = snapshot.data;
+              final active = info?.isActive ?? false;
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          active ? '広告なしプラン利用中' : '広告なしプラン未加入',
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        const SizedBox(height: 8),
+                        Text('プラン: 月額1ドル（日本円で150円）'),
+                        Text('有効期限: ${_formatDate(info?.expiresAt)}'),
+                        Text('次回更新日: ${_formatDate(info?.nextRenewalAt)}'),
+                        const SizedBox(height: 8),
+                        Text(
+                          '※ 次回更新日は端末情報からの推定表示です。正確な請求日は Google Play を確認してください。',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            if (!active)
+                              FilledButton(
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: Color(settings.themeTextColor),
+                                  foregroundColor: Color(settings.themeBackgroundColor),
+                                ),
+                                onPressed: () async {
+                                  final started = await PlaySubscriptionService.instance.purchaseMonthlyPlan();
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(started ? 'Google Play の購入画面を開きました' : '購入を開始できませんでした'),
+                                    ),
+                                  );
+                                },
+                                child: const Text('購入する'),
+                              ),
+                            OutlinedButton(
+                              onPressed: () async {
+                                await PlaySubscriptionService.instance.restorePurchases();
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('購入情報の復元を実行しました')),
+                                );
+                              },
+                              child: const Text('購入を復元'),
+                            ),
+                            TextButton(
+                              onPressed: () => _openSubscriptionCenter(context),
+                              child: const Text('Google Playで管理/解約'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
 
           // ============================================================================
           // テーマ設定セクション

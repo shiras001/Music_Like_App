@@ -364,5 +364,27 @@
   "k11": "1.1×",
   "k125": "1.25×",
   "k15": "1.5×",
-  "k20": "2.0×"
+  "k20": "2.0×",
+  "exportToDownloadsDesc": "Save to download folder with a new name.",
+  "exportLrcButton": "Download LRC",
+  "exportAudioButton": "Download audio",
+  "exportLrcSuccess": "Downloaded {fileName}",
+  "@exportLrcSuccess": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "exportAudioSuccess": "Downloaded {fileName}",
+  "@exportAudioSuccess": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "exportLrcFailed": "Failed to download LRC",
+  "exportAudioFailed": "Failed to download audio",
+  "exportNoFile": "No file"
 }

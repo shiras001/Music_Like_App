@@ -286,6 +286,42 @@ mixin _LibraryTabHelpers on ConsumerState<_LibraryTab> {
     return sortedSongs;
   }
 
+  Future<void> _showAdFreePlanDialog(BuildContext context) async {
+    final settings = ref.read(settingsViewModelProvider);
+    final approved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('定期購読プラン'),
+          content: const Text('月額1ドル（日本円で150円）の広告なしプランを Google Play で購入しますか？'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('キャンセル'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: Color(settings.themeTextColor),
+                foregroundColor: Color(settings.themeBackgroundColor),
+              ),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('開始する'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (approved != true) return;
+
+    final started = await PlaySubscriptionService.instance.purchaseMonthlyPlan();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(started ? 'Google Play の購入画面を開きました' : '購入を開始できませんでした')),
+    );
+    setState(() {});
+  }
+
   Widget _buildAppDrawer(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Drawer(
@@ -295,8 +331,9 @@ mixin _LibraryTabHelpers on ConsumerState<_LibraryTab> {
             ListTile(
               leading: const Icon(Icons.settings),
               title: Text(l10n.drawerSettings),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
+                await AdService.instance.showSettingsInterstitialIfEligible();
                 Navigator.push(
                   context,
                   _buildSmoothRoute(const _SettingsTab()),
@@ -304,6 +341,31 @@ mixin _LibraryTabHelpers on ConsumerState<_LibraryTab> {
               },
             ),
             const Divider(),
+            FutureBuilder<List<bool>>(
+              future: Future.wait<bool>([
+                AdService.areAdsEnabled(),
+                AdService.isAdFreeMonthlyPlanActive(),
+              ]),
+              builder: (context, snapshot) {
+                final values = snapshot.data;
+                final enabled = values == null ? true : values[0];
+                final isPlanActive = values == null ? false : values[1];
+                return SwitchListTile.adaptive(
+                  secondary: const Icon(Icons.ad_units),
+                  title: Text('広告を表示'),
+                  subtitle: isPlanActive ? const Text('定期購読プラン利用中は広告なしになります') : null,
+                  value: isPlanActive ? false : enabled,
+                  onChanged: isPlanActive
+                      ? null
+                      : (v) async {
+                          await AdService.instance.setAdsEnabled(v);
+                          try {
+                            setState(() {});
+                          } catch (_) {}
+                        },
+                );
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.edit),
               title: Text(l10n.drawerEditCategories),
@@ -318,6 +380,23 @@ mixin _LibraryTabHelpers on ConsumerState<_LibraryTab> {
               onTap: () {
                 Navigator.pop(context);
                 showSortSelectionDialog(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.workspace_premium),
+              title: const Text('定期購読プラン'),
+              subtitle: const Text('月額1ドル（日本円で150円）で広告なし'),
+              onTap: () async {
+                Navigator.pop(context);
+                final active = await AdService.isAdFreeMonthlyPlanActive();
+                if (!mounted) return;
+                if (active) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('定期購読プランはすでに利用中です')),
+                  );
+                  return;
+                }
+                await _showAdFreePlanDialog(context);
               },
             ),
           ],

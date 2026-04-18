@@ -7,17 +7,20 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart' hide RepeatMode;
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:music_like/l10n/app_localizations.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../ads/ad_service.dart';
 import '../data/lrc_service.dart';
 import '../data/local_music_db.dart';
 import '../data/repositories.dart';
@@ -48,9 +51,4 @@ part 'settings/settings_helpers.dart';
 part 'settings/settings_actions.dart';
 part 'lrc/lrc_adjust_screen.dart';
 part 'widgets/seek_bar.dart';
-
-class RewardUnlockService {
-	static Future<bool> ensureUnlocked(BuildContext context, String actionLabel) async {
-		return true;
-	}
-}
+part 'widgets/native_ad_tile.dart';

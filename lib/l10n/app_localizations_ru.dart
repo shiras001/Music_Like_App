@@ -21,7 +21,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get commonClose => 'Закрыть';
 
   @override
-  String get commonDetails => 'Details';
+  String get commonDetails => 'Подробности';
 
   @override
   String get commonDelete => 'Удалить';
@@ -63,16 +63,16 @@ class AppLocalizationsRu extends AppLocalizations {
   String get tabAlbums => 'Альбомы';
 
   @override
-  String get tabPlaylists => 'Playlists';
+  String get tabPlaylists => 'Плейлисты';
 
   @override
-  String get drawerSettings => 'Settings';
+  String get drawerSettings => 'Настройки';
 
   @override
-  String get drawerEditCategories => 'Edit categories';
+  String get drawerEditCategories => 'Редактировать категории';
 
   @override
-  String get drawerSort => 'Sort';
+  String get drawerSort => 'Сортировка';
 
   @override
   String get libraryLoadFailed => 'Failed to load library';
@@ -81,7 +81,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get libraryReload => 'Reload';
 
   @override
-  String get errorDetailsTitle => 'Error details';
+  String get errorDetailsTitle => 'Подробности ошибки';
 
   @override
   String get errorClose => 'Close';
@@ -90,7 +90,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get searchHint => 'Song, artist, or album';
 
   @override
-  String get categoryEditTitle => 'Edit categories';
+  String get categoryEditTitle => 'Редактировать категории';
 
   @override
   String get categorySongs => 'Songs';
@@ -105,22 +105,22 @@ class AppLocalizationsRu extends AppLocalizations {
   String get categoryPlaylists => 'Playlists';
 
   @override
-  String get sortTitleAsc => 'Title (A-Z)';
+  String get sortTitleAsc => 'Название (А-Я)';
 
   @override
-  String get sortTitleDesc => 'Title (Z-A)';
+  String get sortTitleDesc => 'Название (Я-А)';
 
   @override
-  String get sortArtistAsc => 'Artist (A-Z)';
+  String get sortArtistAsc => 'Исполнитель (А-Я)';
 
   @override
-  String get sortArtistDesc => 'Artist (Z-A)';
+  String get sortArtistDesc => 'Исполнитель (Я-А)';
 
   @override
-  String get sortDurationAsc => 'Duration (shorter)';
+  String get sortDurationAsc => 'Длительность (короче)';
 
   @override
-  String get sortDurationDesc => 'Duration (longer)';
+  String get sortDurationDesc => 'Длительность (длиннее)';
 
   @override
   String get noSongs => 'No songs';
@@ -186,31 +186,31 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String removedFromQueue(String songName) {
-    return 'Removed \"$songName\" from queue';
+    return '\"$songName\" удалено из очереди';
   }
 
   @override
-  String get playNext => 'Play Next';
+  String get playNext => 'Играть следующим';
 
   @override
   String addedPlayNext(String songName) {
-    return 'Added \"$songName\" to Play Next';
+    return '\"$songName\" добавлено в «Играть следующим»';
   }
 
   @override
-  String get addedToQueue => 'Added to queue';
+  String get addedToQueue => 'Добавлено в очередь';
 
   @override
-  String get addToPlaylist => 'Add to playlist';
+  String get addToPlaylist => 'Добавить в плейлист';
 
   @override
-  String get addToPlaylistTitle => 'Add to playlist';
+  String get addToPlaylistTitle => 'Добавить в плейлист';
 
   @override
-  String get createNewPlaylist => 'Create new playlist';
+  String get createNewPlaylist => 'Создать новый плейлист';
 
   @override
-  String get existingPlaylists => 'Existing playlists';
+  String get existingPlaylists => 'Существующие плейлисты';
 
   @override
   String get createPlaylist => 'Create playlist';
@@ -225,16 +225,16 @@ class AppLocalizationsRu extends AppLocalizations {
   String get addedToPlaylist => 'Added to playlist';
 
   @override
-  String get editLyrics => 'Edit lyrics';
+  String get editLyrics => 'Редактировать текст';
 
   @override
-  String get editLyricsLrc => 'Edit lyrics (LRC)';
+  String get editLyricsLrc => 'Редактировать текст (LRC)';
 
   @override
-  String get editManually => 'Edit manually';
+  String get editManually => 'Редактировать вручную';
 
   @override
-  String get adjustTiming => 'Adjust timing';
+  String get adjustTiming => 'Настроить синхронизацию';
 
   @override
   String get lyricsFileNotFound => 'Lyrics file not found';
@@ -254,28 +254,28 @@ class AppLocalizationsRu extends AppLocalizations {
   String get lrcHint => '[00:12.34]Lyrics text';
 
   @override
-  String get editSongInfo => 'Edit song info';
+  String get editSongInfo => 'Редактировать данные трека';
 
   @override
-  String get artworkLabel => 'Artwork';
+  String get artworkLabel => 'Обложка';
 
   @override
-  String get selectImage => 'Select image';
+  String get selectImage => 'Выбрать изображение';
 
   @override
-  String get changeImage => 'Change image';
+  String get changeImage => 'Изменить изображение';
 
   @override
-  String get titleLabel => 'Title';
+  String get titleLabel => 'Название';
 
   @override
-  String get artistLabel => 'Artist';
+  String get artistLabel => 'Исполнитель';
 
   @override
-  String get albumLabel => 'Album';
+  String get albumLabel => 'Альбом';
 
   @override
-  String get songUpdated => 'Song updated';
+  String get songUpdated => 'Данные трека обновлены';
 
   @override
   String artworkSaveFailed(String error) {
@@ -423,7 +423,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String importCount(int processed, int total) {
-    return '$processed/$total';
+    return 'Обработано: $processed/$total';
   }
 
   @override
@@ -458,7 +458,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get supportedQualityTitle => 'Поддерживаемое качество';
 
   @override
-  String get supportedQualityDesc => 'Lossless, Dolby Atmos';
+  String get supportedQualityDesc => 'Без потерь, Dolby Atmos';
 
   @override
   String get lrcAdjustTitle => 'Настройка LRC';
@@ -489,46 +489,46 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get offset => 'Offset';
+  String get offset => 'Смещение';
 
   @override
-  String get apply => 'Apply';
+  String get apply => 'Применить';
 
   @override
-  String get reset => 'Reset';
+  String get reset => 'Сброс';
 
   @override
-  String get noLrcFileFound => 'No LRC file found';
+  String get noLrcFileFound => 'Файл LRC не найден';
 
   @override
-  String get upNext => 'Up Next';
+  String get upNext => 'Далее';
 
   @override
-  String get close => 'Close';
+  String get close => 'Закрыть';
 
   @override
-  String get queueIsEmpty => 'Queue is empty';
+  String get queueIsEmpty => 'Очередь пуста';
 
   @override
-  String get selectASong => 'Select a song';
+  String get selectASong => 'Выбрать песню';
 
   @override
-  String get play => 'Play';
+  String get play => 'Воспроизвести';
 
   @override
-  String get applyChanges2 => 'Apply changes';
+  String get applyChanges2 => 'Применить изменения';
 
   @override
-  String get restore2 => 'Restore';
+  String get restore2 => 'Восстановить';
 
   @override
-  String get previewFirst30Lines => 'Preview (first 30 lines)';
+  String get previewFirst30Lines => 'Предпросмотр (первые 30 строк)';
 
   @override
-  String get customColor => 'Custom color';
+  String get customColor => 'Пользовательский цвет';
 
   @override
-  String get darkMode => 'Dark mode';
+  String get darkMode => 'Тёмный режим';
 
   @override
   String get appLanguage => 'App language';
@@ -537,270 +537,299 @@ class AppLocalizationsRu extends AppLocalizations {
   String get followSystemSetting => 'Язык системы';
 
   @override
-  String get save => 'Save';
+  String get save => 'Сохранить';
 
   @override
-  String get cancel => 'Cancel';
+  String get cancel => 'Отмена';
 
   @override
-  String get change => 'Change';
+  String get change => 'Изменить';
 
   @override
   String get selectLanguage2 => 'Select language';
 
   @override
-  String get confirm => 'Confirm';
+  String get confirm => 'Подтвердить';
 
   @override
-  String get execute => 'Execute';
+  String get execute => 'Выполнить';
 
   @override
-  String get noData => 'No data';
+  String get noData => 'Нет данных';
 
   @override
-  String get error => 'Error';
+  String get error => 'Ошибка';
 
   @override
-  String get delete => 'Delete';
+  String get delete => 'Удалить';
 
   @override
-  String get search => 'Search';
+  String get search => 'Поиск';
 
   @override
-  String get artist => 'Artist';
+  String get artist => 'Исполнитель';
 
   @override
-  String get tracks => 'Tracks';
+  String get tracks => 'Треки';
 
   @override
-  String get albums => 'Albums';
+  String get albums => 'Альбомы';
 
   @override
-  String get createPlaylist2 => 'Create playlist';
+  String get createPlaylist2 => 'Создать плейлист';
 
   @override
-  String get playpause => 'Play/Pause';
+  String get playpause => 'Воспроизведение/Пауза';
 
   @override
-  String get next => 'Next';
+  String get next => 'Следующий';
 
   @override
-  String get previous => 'Previous';
+  String get previous => 'Предыдущий';
 
   @override
-  String get collection => 'Collection';
+  String get collection => 'Коллекция';
 
   @override
-  String get artistTrackAlbum => 'Artist, track, album';
+  String get artistTrackAlbum => 'Исполнитель, трек, альбом';
 
   @override
-  String get welcome => 'Welcome';
+  String get welcome => 'Добро пожаловать';
 
   @override
-  String get getStarted => 'Get started';
+  String get getStarted => 'Начать';
 
   @override
-  String get showDebugInfo => 'Show debug info';
+  String get showDebugInfo => 'Показать отладочную информацию';
 
   @override
-  String get clear => 'Clear';
+  String get clear => 'Очистить';
 
   @override
-  String get clearCache => 'Clear cache';
+  String get clearCache => 'Очистить кэш';
 
   @override
-  String get yes => 'Yes';
+  String get yes => 'Да';
 
   @override
-  String get no => 'No';
+  String get no => 'Нет';
 
   @override
-  String get switchTheme => 'Switch theme';
+  String get switchTheme => 'Сменить тему';
 
   @override
-  String get light => 'Light';
+  String get light => 'Светлая';
 
   @override
-  String get dark => 'Dark';
+  String get dark => 'Тёмная';
 
   @override
-  String get system => 'System';
+  String get system => 'Система';
 
   @override
-  String get play2 => 'Play';
+  String get play2 => 'Воспроизвести';
 
   @override
-  String get playQueue => 'Play queue';
+  String get playQueue => 'Воспроизвести очередь';
 
   @override
-  String get remove => 'Remove';
+  String get remove => 'Удалить';
 
   @override
   String get migrateSettingsFromOlderVersions =>
-      'Migrate settings from older versions';
+      'Миграция настроек из старых версий';
 
   @override
-  String get tracks2 => 'Tracks';
+  String get tracks2 => 'Треки';
 
   @override
-  String get anErrorOccurred => 'An error occurred';
+  String get anErrorOccurred => 'Произошла ошибка';
 
   @override
-  String get loading => 'Loading...';
+  String get loading => 'Загрузка...';
 
   @override
-  String get offlineMode => 'Offline mode';
+  String get offlineMode => 'Офлайн-режим';
 
   @override
-  String get downloaded => 'Downloaded';
+  String get downloaded => 'Загружено';
 
   @override
-  String get youtube => 'YouTube audio extraction';
+  String get youtube => 'Извлечение аудио с YouTube';
 
   @override
-  String get youtubeurl => 'No YouTube URL found in clipboard';
+  String get youtubeurl => 'URL YouTube в буфере обмена не найден';
 
   @override
-  String get youtube2 => 'Convert from YouTube to audio file';
+  String get youtube2 => 'Конвертировать YouTube в аудиофайл';
 
   @override
-  String get k320Kbps => '320 kbps';
+  String get k320Kbps => '320 кбит/с';
 
   @override
-  String get k441Khz => '44.1 kHz';
+  String get k441Khz => '44,1 кГц';
 
   @override
-  String get mp3M4aFlacWavAiff => 'MP3, M4A, FLAC, WAV, AIFF';
+  String get mp3M4aFlacWavAiff => 'MP3 / M4A / FLAC / WAV / AIFF';
 
   @override
-  String get noLyrics => 'No lyrics';
+  String get noLyrics => 'Нет текста песни';
 
   @override
-  String get playbackSpeed => 'Playback speed';
+  String get playbackSpeed => 'Скорость воспроизведения';
 
   @override
-  String get loadingLyrics => 'Loading lyrics...';
+  String get loadingLyrics => 'Загрузка текста песни...';
 
   @override
-  String get backgroundCustomize => 'Background customize';
+  String get backgroundCustomize => 'Настройка фона';
 
   @override
-  String get selectImageFirst => 'Please select an image first';
+  String get selectImageFirst => 'Сначала выберите изображение';
 
   @override
-  String get backgroundSet => 'Background set';
+  String get backgroundSet => 'Фон установлен';
 
   @override
-  String get backgroundSetFailed => 'Failed to set background';
+  String get backgroundSetFailed => 'Не удалось установить фон';
 
   @override
-  String get thumbnailPreview => 'Preview thumbnail';
+  String get thumbnailPreview => 'Предпросмотр миниатюры';
 
   @override
-  String get lossless => 'Lossless';
+  String get lossless => 'Без потерь';
 
   @override
-  String get audioConversionConfirm => 'Confirm audio conversion';
+  String get audioConversionConfirm => 'Подтвердите преобразование аудио';
 
   @override
-  String get confirmDownloadAudioFromVideo => 'Download audio from this video?';
+  String get confirmDownloadAudioFromVideo => 'Скачать аудио из этого видео?';
 
   @override
-  String get download => 'Download';
+  String get download => 'Скачать';
 
   @override
-  String get videotitle => 'Started downloading \"\$videoTitle\"...';
+  String get videotitle => 'Начата загрузка \"\$videoTitle\"...';
 
   @override
-  String get videotitle2 => 'Finished downloading \"\$videoTitle\"!';
+  String get videotitle2 => 'Загрузка \"\$videoTitle\" завершена!';
 
   @override
-  String get videotitle3 => 'Failed to download \"\$videoTitle\"';
+  String get videotitle3 => 'Не удалось загрузить \"\$videoTitle\"';
 
   @override
   String get downloadCompletedFileNotFound =>
-      'Download completed but file not found';
+      'Загрузка завершена, но файл не найден';
 
   @override
   String get downloadCompletedPathUnknown =>
-      'Download completed but file path unknown';
+      'Загрузка завершена, но путь к файлу неизвестен';
 
   @override
-  String get clipboardEmpty => 'Clipboard is empty';
+  String get clipboardEmpty => 'Буфер обмена пуст';
 
   @override
-  String get outputformat => 'Output format: \$outputFormat';
+  String get outputformat => 'Формат вывода: \$outputFormat';
 
   @override
-  String get selectOutputFormat => 'Select output format';
+  String get selectOutputFormat => 'Выберите формат вывода';
 
   @override
-  String get bitrate => 'Bitrate';
+  String get bitrate => 'Битрейт';
 
   @override
-  String get samplingRate => 'Sampling rate';
+  String get samplingRate => 'Частота дискретизации';
 
   @override
   String e(String e) {
-    return 'Error: \$e';
+    return 'Ошибка: \$e';
   }
 
   @override
   String m123(String e) {
-    return 'Crop failed: \$e';
+    return 'Ошибка обрезки: \$e';
   }
 
   @override
   String channelname(String channelName) {
-    return 'Channel: \$channelName';
+    return 'Канал: \$channelName';
   }
 
   @override
   String error4(String error) {
-    return 'Download error: \$error';
+    return 'Ошибка загрузки: \$error';
   }
 
   @override
-  String get import => 'Import';
+  String get import => 'Импорт';
 
   @override
-  String get export => 'Export';
+  String get export => 'Экспорт';
 
   @override
-  String get nowPlaying => 'Now playing';
+  String get nowPlaying => 'Сейчас играет';
 
   @override
   String param(Object processed, Object total) {
-    return '$processed/$total';
+    return 'Обработано: $processed/$total';
   }
 
   @override
-  String get nowPlaying2 => 'Now Playing';
+  String get nowPlaying2 => 'Сейчас играет';
 
   @override
-  String get noSongPlaying => 'No song playing';
+  String get noSongPlaying => 'Нет воспроизводимой композиции';
 
   @override
-  String get dolbyAtmos => 'Dolby Atmos';
+  String get dolbyAtmos => 'Dolby Atmos (пространственный звук)';
 
   @override
-  String get k075 => '0.75×';
+  String get k075 => '0,75×';
 
   @override
-  String get k09 => '0.9×';
+  String get k09 => '0,9×';
 
   @override
-  String get k10 => '1.0×';
+  String get k10 => '1,0×';
 
   @override
-  String get k11 => '1.1×';
+  String get k11 => '1,1×';
 
   @override
-  String get k125 => '1.25×';
+  String get k125 => '1,25×';
 
   @override
-  String get k15 => '1.5×';
+  String get k15 => '1,5×';
 
   @override
-  String get k20 => '2.0×';
+  String get k20 => '2,0×';
+
+  @override
+  String get exportToDownloadsDesc =>
+      'Сохранить в папку загрузок под другим именем.';
+
+  @override
+  String get exportLrcButton => 'Скачать LRC';
+
+  @override
+  String get exportAudioButton => 'Скачать аудио';
+
+  @override
+  String exportLrcSuccess(String fileName) {
+    return '$fileName загружено';
+  }
+
+  @override
+  String exportAudioSuccess(String fileName) {
+    return '$fileName загружено';
+  }
+
+  @override
+  String get exportLrcFailed => 'Не удалось загрузить LRC';
+
+  @override
+  String get exportAudioFailed => 'Не удалось загрузить аудио';
+
+  @override
+  String get exportNoFile => 'Нет файла';
 }

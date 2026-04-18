@@ -649,13 +649,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get youtube2 => 'YouTubeから音声ファイル化';
 
   @override
-  String get k320Kbps => '320 kbps';
+  String get k320Kbps => '320キロビット/秒';
 
   @override
-  String get k441Khz => '44.1 kHz';
+  String get k441Khz => '44.1キロヘルツ';
 
   @override
-  String get mp3M4aFlacWavAiff => 'MP3, M4A, FLAC, WAV, AIFF';
+  String get mp3M4aFlacWavAiff => 'MP3／M4A／FLAC／WAV／AIFF';
 
   @override
   String get noLyrics => '歌詞はありません';
@@ -758,32 +758,60 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get nowPlaying2 => 'Now Playing';
+  String get nowPlaying2 => '再生中';
 
   @override
-  String get noSongPlaying => 'No song playing';
+  String get noSongPlaying => '再生中の曲がありません';
 
   @override
-  String get dolbyAtmos => 'Dolby Atmos';
+  String get dolbyAtmos => 'ドルビーアトモス';
 
   @override
-  String get k075 => '0.75×';
+  String get k075 => '0.75倍';
 
   @override
-  String get k09 => '0.9×';
+  String get k09 => '0.9倍';
 
   @override
-  String get k10 => '1.0×';
+  String get k10 => '1.0倍';
 
   @override
-  String get k11 => '1.1×';
+  String get k11 => '1.1倍';
 
   @override
-  String get k125 => '1.25×';
+  String get k125 => '1.25倍';
 
   @override
-  String get k15 => '1.5×';
+  String get k15 => '1.5倍';
 
   @override
-  String get k20 => '2.0×';
+  String get k20 => '2.0倍';
+
+  @override
+  String get exportToDownloadsDesc => 'ダウンロードフォルダに別名で保存します。';
+
+  @override
+  String get exportLrcButton => 'LRC をダウンロード';
+
+  @override
+  String get exportAudioButton => '音声をダウンロード';
+
+  @override
+  String exportLrcSuccess(String fileName) {
+    return '$fileName をダウンロードしました';
+  }
+
+  @override
+  String exportAudioSuccess(String fileName) {
+    return '$fileName をダウンロードしました';
+  }
+
+  @override
+  String get exportLrcFailed => 'LRC のダウンロードに失敗しました';
+
+  @override
+  String get exportAudioFailed => '音声ファイルのダウンロードに失敗しました';
+
+  @override
+  String get exportNoFile => 'ファイルなし';
 }

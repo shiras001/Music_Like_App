@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -271,32 +272,24 @@ class MusicRepositoryImpl implements IMusicRepository {
     try {
       final metadataOverrides = await _readMetadataOverrides();
 
-      // アプリ専用ディレクトリの MUSIC LIKE/library をスキャン
+      // アプリ専用ディレクトリの Music フォルダをスキャン
       final appDocDir = Directory(
         (await getApplicationDocumentsDirectory()).path,
       );
-      final appRootDir = Directory(p.join(appDocDir.path, 'MUSIC LIKE'));
-      final libraryDir = Directory(p.join(appRootDir.path, 'library'));
-      final lrcDir = Directory(p.join(appRootDir.path, 'LRC'));
-
-      // 初回起動時にも所定のディレクトリ構成を作成しておく
-      if (!await appRootDir.exists()) {
-        await appRootDir.create(recursive: true);
-      }
-      if (!await libraryDir.exists()) {
-        await libraryDir.create(recursive: true);
-      }
-      if (!await lrcDir.exists()) {
-        await lrcDir.create(recursive: true);
+      final musicDir = Directory('${appDocDir.path}/Music');
+      
+      if (!await musicDir.exists()) {
+        // ディレクトリがまだ作成されていない場合は空リストを返す
+        return [];
       }
       
       final songs = <Song>[];
       int songCounter = 0;
       
       try {
-        // library ディレクトリ内の音声ファイルを列挙
+        // Music ディレクトリ内の音声ファイルを列挙
         final localService = LocalAudioServiceImpl();
-        await for (final entity in libraryDir.list()) {
+        await for (final entity in musicDir.list()) {
           if (entity is File) {
             final fileName = entity.path.split('/').last;
             final extension = fileName.split('.').last.toLowerCase();
@@ -377,9 +370,10 @@ class MusicRepositoryImpl implements IMusicRepository {
               // determine lyrics path (if exists)
               String? lyricsPath;
               try {
+                final audioDir = p.dirname(localPath);
                 final baseName = p.basenameWithoutExtension(localPath);
-                final lrcCandidate = p.join(lrcDir.path, '$baseName.lrc');
-                final lrcCandidateUpper = p.join(lrcDir.path, '$baseName.LRC');
+                final lrcCandidate = p.join(audioDir, '$baseName.lrc');
+                final lrcCandidateUpper = p.join(audioDir, '$baseName.LRC');
                 
                 if (File(lrcCandidate).existsSync()) {
                   lyricsPath = lrcCandidate;
@@ -388,7 +382,7 @@ class MusicRepositoryImpl implements IMusicRepository {
                   lyricsPath = lrcCandidateUpper;
                   debugPrint('[LRC検出] 大文字: $lrcCandidateUpper');
                 } else {
-                  final dir = Directory(lrcDir.path);
+                  final dir = Directory(audioDir);
                   if (dir.existsSync()) {
                     // より柔軟な名前マッチング
                     for (final entity in dir.listSync()) {
@@ -415,6 +409,44 @@ class MusicRepositoryImpl implements IMusicRepository {
                 }
               } catch (e) {
                 debugPrint('[LRC検出エラー] $e');
+              }
+
+              // If we found a lyrics file but it's not located in the same
+              // directory as the audio file, copy it into the audio directory
+              // so the app can always reference a local lyrics file adjacent
+              // to the audio file.
+              try {
+                if (lyricsPath != null) {
+                  final audioDir = p.dirname(localPath);
+                  final lyricsDir = p.dirname(lyricsPath);
+                  if (p.normalize(audioDir) != p.normalize(lyricsDir)) {
+                    final destName = p.basename(lyricsPath).toLowerCase().endsWith('.lrc')
+                        ? p.basename(lyricsPath)
+                        : '${p.basenameWithoutExtension(lyricsPath)}.lrc';
+                    var destPath = p.join(audioDir, destName);
+
+                    // If destination already exists, try to avoid overwriting by
+                    // appending an index.
+                    int idx = 1;
+                    while (File(destPath).existsSync()) {
+                      final nameOnly = p.basenameWithoutExtension(destName);
+                      final ext = p.extension(destName);
+                      destPath = p.join(audioDir, '${nameOnly}_$idx$ext');
+                      idx++;
+                      if (idx > 10) break;
+                    }
+
+                    try {
+                      await File(lyricsPath).copy(destPath);
+                      lyricsPath = destPath;
+                      debugPrint('[LRCコピー] $lyricsPath にコピーしました');
+                    } catch (e) {
+                      debugPrint('[LRCコピー失敗] $e');
+                    }
+                  }
+                }
+              } catch (e) {
+                debugPrint('[LRCコピー処理エラー] $e');
               }
 
               var song = Song(
@@ -486,8 +518,17 @@ class MusicRepositoryImpl implements IMusicRepository {
 
   @override
   Future<void> updateSongMetadata(String songId, Map<String, dynamic> data) async {
-    final localPath = data['localPath'] as String?;
-    if (localPath == null || localPath.isEmpty) return;
+    String? localPath = data['localPath'] as String?;
+    if (localPath == null || localPath.isEmpty) {
+      try {
+        final song = await getSongById(songId);
+        localPath = song?.localPath;
+      } catch (_) {}
+    }
+    if (localPath == null || localPath.isEmpty) {
+      debugPrint('[Metadata] localPath not found for songId=$songId');
+      return;
+    }
 
     final overrides = await _readMetadataOverrides();
     final existing = overrides[localPath];
@@ -544,6 +585,7 @@ class MusicRepositoryImpl implements IMusicRepository {
 
 class MusicDbRepositoryImpl implements IMusicRepository {
   final LocalMusicDb _db = LocalMusicDb.instance;
+  static const MethodChannel _metadataChannel = MethodChannel('appmaker/wallpaper');
 
   @override
   Future<List<Song>> fetchLibrary() async {
@@ -557,6 +599,40 @@ class MusicDbRepositoryImpl implements IMusicRepository {
 
   @override
   Future<void> updateSongMetadata(String songId, Map<String, dynamic> data) async {
+    final shouldWriteAudioMetadata =
+        data.containsKey('title') ||
+        data.containsKey('artist') ||
+        data.containsKey('album') ||
+        data.containsKey('artworkUrl');
+
+    if (shouldWriteAudioMetadata) {
+      String? localPath = data['localPath'] as String?;
+      if (localPath == null || localPath.isEmpty) {
+        final song = await _db.getSongById(songId);
+        localPath = song?.localPath;
+      }
+      final title = data['title'] as String?;
+      final artist = data['artist'] as String?;
+      final album = data['album'] as String?;
+      final artworkPath = data['artworkUrl'] as String?;
+
+      if (localPath == null || localPath.isEmpty) {
+        debugPrint('[Metadata] localPath not found for songId=$songId. Skip native write and keep DB update.');
+      } else {
+        try {
+          await _metadataChannel.invokeMethod('writeAudioMetadata', {
+            'path': localPath,
+            if (title != null) 'title': title,
+            if (artist != null) 'artist': artist,
+            if (album != null) 'album': album,
+            if (artworkPath != null) 'artworkPath': artworkPath,
+          });
+        } on PlatformException catch (e) {
+          debugPrint('[Metadata] native write failed (${e.code}): ${e.message}. Continue DB update.');
+        }
+      }
+    }
+
     await _db.updateSongMetadata(songId, data);
   }
 

@@ -7,11 +7,14 @@ extension _LibraryTabDialogs on _LibraryTabState {
       context: context,
       backgroundColor: Theme.of(context).colorScheme.surface,
       builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
             ListTile(
-              leading: Icon(Icons.play_arrow, color: Theme.of(context).iconTheme.color),
+              leading: Icon(Icons.play_arrow, color: Theme.of(context).textTheme.bodyMedium?.color),
               title: Text(l10n.commonPlay, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
               onTap: () {
                 _tapFeedback(context);
@@ -20,7 +23,7 @@ extension _LibraryTabDialogs on _LibraryTabState {
               },
             ),
             ListTile(
-              leading: Icon(Icons.playlist_play, color: Theme.of(context).iconTheme.color),
+              leading: Icon(Icons.playlist_play, color: Theme.of(context).textTheme.bodyMedium?.color),
               title: Text(l10n.playNext, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
               onTap: () {
                 _tapFeedback(context);
@@ -34,7 +37,7 @@ extension _LibraryTabDialogs on _LibraryTabState {
               },
             ),
             ListTile(
-              leading: Icon(Icons.playlist_add, color: Theme.of(context).iconTheme.color),
+              leading: Icon(Icons.playlist_add, color: Theme.of(context).textTheme.bodyMedium?.color),
               title: Text(l10n.addToPlaylist, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
               onTap: () {
                 _tapFeedback(context);
@@ -43,7 +46,7 @@ extension _LibraryTabDialogs on _LibraryTabState {
               },
             ),
             ListTile(
-              leading: Icon(Icons.lyrics, color: Theme.of(context).iconTheme.color),
+              leading: Icon(Icons.lyrics, color: Theme.of(context).textTheme.bodyMedium?.color),
               title: Text(l10n.editLyrics, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
               onTap: () {
                 _tapFeedback(context);
@@ -52,7 +55,7 @@ extension _LibraryTabDialogs on _LibraryTabState {
               },
             ),
             ListTile(
-              leading: Icon(Icons.edit, color: Theme.of(context).iconTheme.color),
+              leading: Icon(Icons.edit, color: Theme.of(context).textTheme.bodyMedium?.color),
               title: Text(
                 l10n.editSongInfo,
                 style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
@@ -63,38 +66,167 @@ extension _LibraryTabDialogs on _LibraryTabState {
                 _showEditMetadataDialog(context, song);
               },
             ),
+            ListTile(
+              leading: Icon(Icons.download, color: Theme.of(context).textTheme.bodyMedium?.color),
+              title: Text(l10n.download, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+              onTap: () {
+                _tapFeedback(context);
+                Navigator.pop(context);
+                _showExportDialog(context, song);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: Text(l10n.commonDelete, style: const TextStyle(color: Colors.red)),
+              onTap: () {
+                _tapFeedback(context);
+                Navigator.pop(context);
+                showDialog(
+                  context: context,
+                  builder: (dialogContext) => AlertDialog(
+                    backgroundColor: Theme.of(dialogContext).colorScheme.surface,
+                    title: Text(
+                      '削除確認',
+                      style: TextStyle(color: Theme.of(dialogContext).textTheme.bodyMedium?.color),
+                    ),
+                    content: Text(
+                      '「${song.title}」を削除してもよろしいですか？',
+                      style: TextStyle(color: Theme.of(dialogContext).textTheme.bodyMedium?.color),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        child: Text(l10n.commonCancel),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(dialogContext);
+                          ref.read(libraryViewModelProvider.notifier).deleteSong(song.id);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('「${song.title}」を削除しました')),
+                          );
+                        },
+                        child: Text(l10n.commonDelete, style: const TextStyle(color: Colors.red)),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showArtistContextMenu(BuildContext context, String artistName, List<Song> artistSongs) {
+    final l10n = AppLocalizations.of(context)!;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: Text(l10n.commonDelete, style: const TextStyle(color: Colors.red)),
+              onTap: () {
+                _tapFeedback(sheetContext);
+                Navigator.pop(sheetContext);
+                showDialog(
+                  context: context,
+                  builder: (dialogContext) => AlertDialog(
+                    backgroundColor: Theme.of(dialogContext).colorScheme.surface,
+                    title: Text(
+                      '削除確認',
+                      style: TextStyle(color: Theme.of(dialogContext).textTheme.bodyMedium?.color),
+                    ),
+                    content: Text(
+                      'アーティスト「$artistName」の曲を削除してもよろしいですか？',
+                      style: TextStyle(color: Theme.of(dialogContext).textTheme.bodyMedium?.color),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        child: Text(l10n.commonCancel),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          Navigator.pop(dialogContext);
+                          for (final song in artistSongs) {
+                            await ref.read(libraryViewModelProvider.notifier).deleteSong(song.id);
+                          }
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('アーティスト「$artistName」の曲を削除しました')),
+                            );
+                          }
+                        },
+                        child: Text(l10n.commonDelete, style: const TextStyle(color: Colors.red)),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
     );
   }
 
-  void _showArtistContextMenu(BuildContext context, String artist, List<Song> songs) {
+  void _showAlbumContextMenu(BuildContext context, String albumName, List<Song> albumSongs) {
     final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       backgroundColor: Theme.of(context).colorScheme.surface,
-      builder: (context) => SafeArea(
+      builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(Icons.play_arrow, color: Theme.of(context).iconTheme.color),
-              title: Text(l10n.commonPlay, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: Text(l10n.commonDelete, style: const TextStyle(color: Colors.red)),
               onTap: () {
-                _tapFeedback(context);
-                Navigator.pop(context);
-                ref.read(playerViewModelProvider.notifier).setQueue(songs, startIndex: 0, autoPlay: true);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.shuffle, color: Theme.of(context).iconTheme.color),
-              title: Text(l10n.commonShuffle, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
-              onTap: () {
-                _tapFeedback(context);
-                Navigator.pop(context);
-                final shuffled = List<Song>.from(songs)..shuffle();
-                ref.read(playerViewModelProvider.notifier).setQueue(shuffled, startIndex: 0, autoPlay: true);
+                _tapFeedback(sheetContext);
+                Navigator.pop(sheetContext);
+                showDialog(
+                  context: context,
+                  builder: (dialogContext) => AlertDialog(
+                    backgroundColor: Theme.of(dialogContext).colorScheme.surface,
+                    title: Text(
+                      '削除確認',
+                      style: TextStyle(color: Theme.of(dialogContext).textTheme.bodyMedium?.color),
+                    ),
+                    content: Text(
+                      'アルバム「$albumName」の曲を削除してもよろしいですか？',
+                      style: TextStyle(color: Theme.of(dialogContext).textTheme.bodyMedium?.color),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        child: Text(l10n.commonCancel),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          Navigator.pop(dialogContext);
+                          for (final song in albumSongs) {
+                            await ref.read(libraryViewModelProvider.notifier).deleteSong(song.id);
+                          }
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('アルバム「$albumName」の曲を削除しました')),
+                            );
+                          }
+                        },
+                        child: Text(l10n.commonDelete, style: const TextStyle(color: Colors.red)),
+                      ),
+                    ],
+                  ),
+                );
               },
             ),
           ],
@@ -103,36 +235,66 @@ extension _LibraryTabDialogs on _LibraryTabState {
     );
   }
 
-  void _showAlbumContextMenu(BuildContext context, String album, List<Song> songs) {
-    final l10n = AppLocalizations.of(context)!;
-    showModalBottomSheet(
+  void _showExportDialog(BuildContext context, Song song) {
+    final hasAudio = song.localPath != null && song.localPath!.isNotEmpty && File(song.localPath!).existsSync();
+    final hasLrc   = song.lyricsPath != null && song.lyricsPath!.isNotEmpty && File(song.lyricsPath!).existsSync();
+
+    showDialog(
       context: context,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: Icon(Icons.play_arrow, color: Theme.of(context).iconTheme.color),
-              title: Text(l10n.commonPlay, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
-              onTap: () {
-                _tapFeedback(context);
-                Navigator.pop(context);
-                ref.read(playerViewModelProvider.notifier).setQueue(songs, startIndex: 0, autoPlay: true);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.shuffle, color: Theme.of(context).iconTheme.color),
-              title: Text(l10n.commonShuffle, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
-              onTap: () {
-                _tapFeedback(context);
-                Navigator.pop(context);
-                final shuffled = List<Song>.from(songs)..shuffle();
-                ref.read(playerViewModelProvider.notifier).setQueue(shuffled, startIndex: 0, autoPlay: true);
-              },
-            ),
-          ],
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Theme.of(ctx).colorScheme.surface,
+        title: Text(AppLocalizations.of(ctx)!.download, style: TextStyle(color: Theme.of(ctx).textTheme.bodyMedium?.color)),
+        content: Text(
+          AppLocalizations.of(ctx)!.exportToDownloadsDesc,
+          style: TextStyle(color: Theme.of(ctx).textTheme.bodyMedium?.color),
         ),
+        actions: [
+          if (hasLrc)
+            Builder(builder: (btnCtx) {
+              final l10n = AppLocalizations.of(btnCtx)!;
+              return TextButton(
+                onPressed: () async {
+                  final lrcBtn = l10n.exportLrcButton;
+                  final successMsg = (String f) => l10n.exportLrcSuccess(f);
+                  final failMsg = l10n.exportLrcFailed;
+                  Navigator.pop(ctx);
+                  final ok = await RewardUnlockService.ensureUnlocked(context, lrcBtn);
+                  if (!ok) return;
+                  final downloadedFileName = buildExportLrcFileName(song);
+                  final dest = await exportLrcToDownloads(song);
+                  _pushAppMessage(context, dest != null ? successMsg(downloadedFileName) : failMsg);
+                },
+                child: Text(l10n.exportLrcButton),
+              );
+            }),
+          if (hasAudio)
+            Builder(builder: (btnCtx) {
+              final l10n = AppLocalizations.of(btnCtx)!;
+              return TextButton(
+                onPressed: () async {
+                  final audioBtn = l10n.exportAudioButton;
+                  final successMsg = (String f) => l10n.exportAudioSuccess(f);
+                  final failMsg = l10n.exportAudioFailed;
+                  Navigator.pop(ctx);
+                  final ok = await RewardUnlockService.ensureUnlocked(context, audioBtn);
+                  if (!ok) return;
+                  final downloadedFileName = buildExportAudioFileName(song);
+                  final dest = await exportAudioToDownloads(song);
+                  _pushAppMessage(context, dest != null ? successMsg(downloadedFileName) : failMsg);
+                },
+                child: Text(l10n.exportAudioButton),
+              );
+            }),
+          if (!hasAudio && !hasLrc)
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(AppLocalizations.of(ctx)!.exportNoFile),
+            ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(AppLocalizations.of(ctx)!.commonCancel),
+          ),
+        ],
       ),
     );
   }
@@ -461,7 +623,17 @@ extension _LibraryTabDialogs on _LibraryTabState {
                                 });
                               }
                             },
-                            child: Text(l10n.selectImage),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                _breakByHalfWidthSpace(l10n.selectImage),
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                softWrap: false,
+                                overflow: TextOverflow.visible,
+                                style: _imageActionLabelStyle(dialogContext),
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -527,6 +699,36 @@ extension _LibraryTabDialogs on _LibraryTabState {
             TextButton(
               onPressed: () async {
                 Navigator.pop(dialogContext);
+                final resolvedAudioPath = await resolveEditableAudioPath(song.localPath);
+                final writableAudioPath = (resolvedAudioPath == null || resolvedAudioPath.isEmpty)
+                    ? song.localPath
+                    : resolvedAudioPath;
+                if (writableAudioPath == null || writableAudioPath.isEmpty) {
+                  _warningFeedback();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(_t(context, ja: '楽曲ファイルの保存先が見つかりません。', en: 'Unable to locate target audio file.', zh: '找不到目标音频文件。'))),
+                    );
+                  }
+                  return;
+                }
+                final needsExternalPermission = !_isManagedInternalPath(writableAudioPath);
+                if (needsExternalPermission) {
+                  final canWrite = await ensureStorageAndAudioPermissions(
+                    dialogContext,
+                    forWrite: true,
+                    targetPath: writableAudioPath,
+                  );
+                  if (!canWrite) {
+                    _warningFeedback();
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(_t(context, ja: 'ファイルへの書き込み権限がありません。設定から「すべてのファイルへのアクセス」を許可してください。', en: 'No write permission for file. Please allow all-files access in settings.', zh: '没有文件写入权限。请在设置中允许所有文件访问。'))),
+                      );
+                    }
+                    return;
+                  }
+                }
                 String? finalArtworkPath = selectedArtworkPath;
                 if (selectedArtworkPath != null && song.localPath != null) {
                   final rootDir = await getApplicationDocumentsDirectory();
@@ -539,23 +741,41 @@ extension _LibraryTabDialogs on _LibraryTabState {
                     }
                     await File(selectedArtworkPath!).copy(destPath);
                     finalArtworkPath = destPath;
-                  } catch (_) {}
+                    debugPrint('[Save] Artwork copied to: $destPath');
+                  } catch (e) {
+                    debugPrint('[Save] Artwork copy failed: $e');
+                  }
                 }
 
-                await ref.read(libraryViewModelProvider.notifier).updateSongMetadata(
-                  song.id,
-                  {
+                try {
+                  final metadata = {
                     'title': titleController.text.trim(),
                     'artist': artistController.text.trim(),
                     'album': albumController.text.trim(),
                     'artworkUrl': finalArtworkPath,
-                  },
-                );
-                _successFeedback();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.songUpdated)),
+                    'localPath': writableAudioPath,
+                  };
+                  debugPrint('[Save] Updating metadata: $metadata');
+                  await ref.read(libraryViewModelProvider.notifier).updateSongMetadata(
+                    song.id,
+                    metadata,
                   );
+                  debugPrint('[Save] Metadata saved successfully');
+                  _successFeedback();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(l10n.songUpdated)),
+                    );
+                  }
+                } catch (e, stackTrace) {
+                  debugPrint('[Save] Metadata save ERROR: $e');
+                  debugPrint('[Save] Stack: $stackTrace');
+                  _warningFeedback();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(_t(context, ja: 'メタデータの保存に失敗しました: $e', en: 'Failed to save metadata: $e', zh: '保存元数据失败: $e'))),
+                    );
+                  }
                 }
               },
               child: Text(l10n.commonSave),
@@ -573,18 +793,29 @@ extension _LibraryTabDialogs on _LibraryTabState {
       l10n.editLyrics,
     );
     if (!ok) return;
-    final defaultLyricsPath = song.lyricsPath ??
-        (song.localPath != null
-            ? p.join(
-                p.dirname(song.localPath!),
-                '${p.basenameWithoutExtension(song.localPath!)}.lrc',
-              )
-            : null);
+    final writableAudioPath = await resolveEditableAudioPath(song.localPath);
+    final defaultLyricsPath =
+        (song.lyricsPath != null && !_isManagedInternalPath(song.lyricsPath))
+            ? song.lyricsPath
+            : (writableAudioPath != null
+                ? p.join(
+                    p.dirname(writableAudioPath),
+                    '${p.basenameWithoutExtension(writableAudioPath)}.lrc',
+                  )
+                : null);
 
     String initialText = '';
     if (defaultLyricsPath != null && File(defaultLyricsPath).existsSync()) {
       try {
         initialText = await File(defaultLyricsPath).readAsString();
+      } catch (_) {}
+    }
+    if (initialText.isEmpty && song.lyricsPath != null && song.lyricsPath!.isNotEmpty) {
+      try {
+        final originalLyricsFile = File(song.lyricsPath!);
+        if (await originalLyricsFile.exists()) {
+          initialText = await originalLyricsFile.readAsString();
+        }
       } catch (_) {}
     }
 
@@ -628,25 +859,33 @@ extension _LibraryTabDialogs on _LibraryTabState {
                 );
                 return;
               }
-              // Ensure storage permission before attempting to write
-              final ok = await ensureStorageAndAudioPermissions(dialogContext);
-              if (!ok) {
+              if (_isManagedInternalPath(defaultLyricsPath)) {
                 _warningFeedback();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(_t(context, ja: 'ストレージ権限が必要です', en: 'Storage permission required', zh: '需要存储权限'))),
+                    SnackBar(content: Text(_t(context, ja: '端末の実ファイルを特定できないため歌詞を直接上書きできません。フォルダ読み込みで再インポートしてください。', en: 'Cannot locate original local file for direct lyrics overwrite. Please re-import from folder scan.', zh: '无法定位原始本地文件，无法直接覆盖歌词。请从文件夹扫描重新导入。'))),
                   );
                 }
                 return;
               }
               try {
-                await File(defaultLyricsPath).writeAsString(controller.text);
+                debugPrint('[Save] Writing lyrics to: $defaultLyricsPath');
+                final file = File(defaultLyricsPath);
+                final parentDir = file.parent;
+                if (!await parentDir.exists()) {
+                  debugPrint('[Save] Creating parent directory: ${parentDir.path}');
+                  await parentDir.create(recursive: true);
+                }
+                await file.writeAsString(controller.text);
+                debugPrint('[Save] Lyrics file written successfully');
                 await ref.read(libraryViewModelProvider.notifier).updateSongMetadata(
                   song.id,
                   {
+                    'localPath': song.localPath,
                     'lyricsPath': defaultLyricsPath,
                   },
                 );
+                debugPrint('[Save] Metadata updated');
                 await ref.read(playerViewModelProvider.notifier).loadLyricsFromPath(defaultLyricsPath);
                 _successFeedback();
                 if (context.mounted) {
@@ -654,7 +893,9 @@ extension _LibraryTabDialogs on _LibraryTabState {
                     SnackBar(content: Text(l10n.lyricsSaved)),
                   );
                 }
-              } catch (e) {
+              } catch (e, stackTrace) {
+                debugPrint('[Save] ERROR: $e');
+                debugPrint('[Save] Stack: $stackTrace');
                 _warningFeedback();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(

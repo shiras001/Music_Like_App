@@ -9,10 +9,20 @@ extension _LibraryTabViews on _LibraryTabState {
       );
     }
 
+    const adInterval = 10;
+    final adUnitId = AdConfig.nativeAdUnitId();
+    final adStride = adInterval + 1;
+    final adCount = adUnitId == null ? 0 : (songs.length ~/ adInterval);
+
     return ListView.builder(
-      itemCount: songs.length,
+      itemCount: songs.length + adCount,
       itemBuilder: (context, index) {
-        final song = songs[index];
+        if (adUnitId != null && (index + 1) % adStride == 0) {
+          return _NativeAdTile(adUnitId: adUnitId);
+        }
+        final adsBefore = adUnitId == null ? 0 : (index ~/ adStride);
+        final songIndex = index - adsBefore;
+        final song = songs[songIndex];
         return ListTile(
           leading: Container(
             width: 50,
@@ -36,11 +46,11 @@ extension _LibraryTabViews on _LibraryTabState {
             _tapFeedback(context);
             ref
                 .read(playerViewModelProvider.notifier)
-                .setQueue(songs, startIndex: index, autoPlay: true);
+                .setQueue(songs, startIndex: songIndex, autoPlay: true);
           },
           onLongPress: () {
             _tapFeedback(context);
-            _showSongContextMenu(context, song, songs, index);
+            _showSongContextMenu(context, song, songs, songIndex);
           },
         );
       },
@@ -282,6 +292,7 @@ extension _LibraryTabViews on _LibraryTabState {
                 _CategoryDetailScreen(
                   type: CategoryDetailType.playlist,
                   title: playlist.name,
+                  playlistId: playlist.id,
                   songs: playlistSongs,
                   heroTag: heroTag,
                 ),

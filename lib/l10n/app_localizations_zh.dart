@@ -21,7 +21,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get commonClose => '关闭';
 
   @override
-  String get commonDetails => 'Details';
+  String get commonDetails => '详情';
 
   @override
   String get commonDelete => '删除';
@@ -54,25 +54,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String get commonSaveChanges => 'Save';
 
   @override
-  String get tabSongs => 'Songs';
+  String get tabSongs => '歌曲';
 
   @override
-  String get tabArtists => 'Artists';
+  String get tabArtists => '艺术家';
 
   @override
-  String get tabAlbums => 'Albums';
+  String get tabAlbums => '专辑';
 
   @override
-  String get tabPlaylists => 'Playlists';
+  String get tabPlaylists => '播放列表';
 
   @override
-  String get drawerSettings => 'Settings';
+  String get drawerSettings => '设置';
 
   @override
-  String get drawerEditCategories => 'Edit categories';
+  String get drawerEditCategories => '编辑分类';
 
   @override
-  String get drawerSort => 'Sort';
+  String get drawerSort => '排序';
 
   @override
   String get libraryLoadFailed => 'Failed to load library';
@@ -81,7 +81,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get libraryReload => 'Reload';
 
   @override
-  String get errorDetailsTitle => 'Error details';
+  String get errorDetailsTitle => '错误详情';
 
   @override
   String get errorClose => 'Close';
@@ -90,7 +90,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get searchHint => 'Song, artist, or album';
 
   @override
-  String get categoryEditTitle => 'Edit categories';
+  String get categoryEditTitle => '编辑分类';
 
   @override
   String get categorySongs => 'Songs';
@@ -105,22 +105,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get categoryPlaylists => 'Playlists';
 
   @override
-  String get sortTitleAsc => 'Title (A-Z)';
+  String get sortTitleAsc => '标题 (A-Z)';
 
   @override
-  String get sortTitleDesc => 'Title (Z-A)';
+  String get sortTitleDesc => '标题 (Z-A)';
 
   @override
-  String get sortArtistAsc => 'Artist (A-Z)';
+  String get sortArtistAsc => '艺术家 (A-Z)';
 
   @override
-  String get sortArtistDesc => 'Artist (Z-A)';
+  String get sortArtistDesc => '艺术家 (Z-A)';
 
   @override
-  String get sortDurationAsc => 'Duration (shorter)';
+  String get sortDurationAsc => '时长（较短）';
 
   @override
-  String get sortDurationDesc => 'Duration (longer)';
+  String get sortDurationDesc => '时长（较长）';
 
   @override
   String get noSongs => 'No songs';
@@ -186,31 +186,31 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String removedFromQueue(String songName) {
-    return 'Removed \"$songName\" from queue';
+    return '已从队列移除“$songName”';
   }
 
   @override
-  String get playNext => 'Play Next';
+  String get playNext => '接下来播放';
 
   @override
   String addedPlayNext(String songName) {
-    return 'Added \"$songName\" to Play Next';
+    return '\"$songName\" 已添加到“接下来播放”';
   }
 
   @override
-  String get addedToQueue => 'Added to queue';
+  String get addedToQueue => '已加入队列';
 
   @override
-  String get addToPlaylist => 'Add to playlist';
+  String get addToPlaylist => '添加到播放列表';
 
   @override
-  String get addToPlaylistTitle => 'Add to playlist';
+  String get addToPlaylistTitle => '添加到播放列表';
 
   @override
-  String get createNewPlaylist => 'Create new playlist';
+  String get createNewPlaylist => '新建播放列表';
 
   @override
-  String get existingPlaylists => 'Existing playlists';
+  String get existingPlaylists => '现有播放列表';
 
   @override
   String get createPlaylist => 'Create playlist';
@@ -225,16 +225,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get addedToPlaylist => 'Added to playlist';
 
   @override
-  String get editLyrics => 'Edit lyrics';
+  String get editLyrics => '编辑歌词';
 
   @override
-  String get editLyricsLrc => 'Edit lyrics (LRC)';
+  String get editLyricsLrc => '编辑歌词 (LRC)';
 
   @override
-  String get editManually => 'Edit manually';
+  String get editManually => '手动编辑';
 
   @override
-  String get adjustTiming => 'Adjust timing';
+  String get adjustTiming => '调整时间';
 
   @override
   String get lyricsFileNotFound => 'Lyrics file not found';
@@ -269,13 +269,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get titleLabel => '标题';
 
   @override
-  String get artistLabel => 'Artist';
+  String get artistLabel => '艺术家';
 
   @override
   String get albumLabel => '专辑';
 
   @override
-  String get songUpdated => '歌曲已更新';
+  String get songUpdated => '歌曲信息已更新';
 
   @override
   String artworkSaveFailed(String error) {
@@ -319,7 +319,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get removeBackgroundImage => '移除背景图片';
 
   @override
-  String get adjustBackgroundImage => 'Adjust background image';
+  String get adjustBackgroundImage => '调整背景图片';
 
   @override
   String get adjustBackgroundImageDesc => '捏合缩放并移动';
@@ -422,7 +422,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String importCount(int processed, int total) {
-    return '$processed/$total';
+    return '已处理：$processed/$total';
   }
 
   @override
@@ -490,7 +490,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get offset => '偏移';
 
   @override
-  String get apply => 'Apply';
+  String get apply => '应用';
 
   @override
   String get reset => '重置';
@@ -502,7 +502,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get upNext => '接下来播放';
 
   @override
-  String get close => 'Close';
+  String get close => '关闭';
 
   @override
   String get queueIsEmpty => '队列为空';
@@ -538,7 +538,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get save => '保存';
 
   @override
-  String get cancel => 'Cancel';
+  String get cancel => '取消';
 
   @override
   String get change => '更改';
@@ -556,7 +556,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noData => '没有数据';
 
   @override
-  String get error => 'Error';
+  String get error => '错误';
 
   @override
   String get delete => '删除';
@@ -652,109 +652,107 @@ class AppLocalizationsZh extends AppLocalizations {
   String get downloaded => '已下载';
 
   @override
-  String get youtube => 'YouTube audio extraction';
+  String get youtube => 'YouTube 音频提取';
 
   @override
-  String get youtubeurl => 'No YouTube URL found in clipboard';
+  String get youtubeurl => '剪贴板中未找到 YouTube URL';
 
   @override
-  String get youtube2 => 'Convert from YouTube to audio file';
+  String get youtube2 => '将 YouTube 转换为音频文件';
 
   @override
-  String get k320Kbps => '320 kbps';
+  String get k320Kbps => '320 千比特每秒';
 
   @override
-  String get k441Khz => '44.1 kHz';
+  String get k441Khz => '44.1 千赫兹';
 
   @override
-  String get mp3M4aFlacWavAiff => 'MP3, M4A, FLAC, WAV, AIFF';
+  String get mp3M4aFlacWavAiff => 'MP3／M4A／FLAC／WAV／AIFF';
 
   @override
-  String get noLyrics => 'No lyrics';
+  String get noLyrics => '无歌词';
 
   @override
-  String get playbackSpeed => 'Playback speed';
+  String get playbackSpeed => '播放速度';
 
   @override
-  String get loadingLyrics => 'Loading lyrics...';
+  String get loadingLyrics => '歌词加载中...';
 
   @override
-  String get backgroundCustomize => 'Background customize';
+  String get backgroundCustomize => '背景自定义';
 
   @override
-  String get selectImageFirst => 'Please select an image first';
+  String get selectImageFirst => '请先选择图片';
 
   @override
-  String get backgroundSet => 'Background set';
+  String get backgroundSet => '背景已设置';
 
   @override
-  String get backgroundSetFailed => 'Failed to set background';
+  String get backgroundSetFailed => '设置背景失败';
 
   @override
-  String get thumbnailPreview => 'Preview thumbnail';
+  String get thumbnailPreview => '缩略图预览';
 
   @override
-  String get lossless => 'Lossless';
+  String get lossless => '无损';
 
   @override
-  String get audioConversionConfirm => 'Confirm audio conversion';
+  String get audioConversionConfirm => '确认音频转换';
 
   @override
-  String get confirmDownloadAudioFromVideo => 'Download audio from this video?';
+  String get confirmDownloadAudioFromVideo => '要下载此视频的音频吗？';
 
   @override
-  String get download => 'Download';
+  String get download => '下载';
 
   @override
-  String get videotitle => 'Started downloading \"\$videoTitle\"...';
+  String get videotitle => '已开始下载 \"\$videoTitle\"...';
 
   @override
-  String get videotitle2 => 'Finished downloading \"\$videoTitle\"!';
+  String get videotitle2 => '\"\$videoTitle\" 下载完成！';
 
   @override
-  String get videotitle3 => 'Failed to download \"\$videoTitle\"';
+  String get videotitle3 => '下载 \"\$videoTitle\" 失败';
 
   @override
-  String get downloadCompletedFileNotFound =>
-      'Download completed but file not found';
+  String get downloadCompletedFileNotFound => '下载完成，但未找到文件';
 
   @override
-  String get downloadCompletedPathUnknown =>
-      'Download completed but file path unknown';
+  String get downloadCompletedPathUnknown => '下载完成，但文件路径未知';
 
   @override
-  String get clipboardEmpty => 'Clipboard is empty';
+  String get clipboardEmpty => '剪贴板为空';
 
   @override
-  String get outputformat => 'Output format: \$outputFormat';
+  String get outputformat => '输出格式：\$outputFormat';
 
   @override
-  String get selectOutputFormat => 'Select output format';
+  String get selectOutputFormat => '选择输出格式';
 
   @override
-  String get bitrate => 'Bitrate';
+  String get bitrate => '比特率';
 
   @override
-  String get samplingRate => 'Sampling rate';
+  String get samplingRate => '采样率';
 
   @override
   String e(String e) {
-    return 'Error: \$e';
+    return '错误：\$e';
   }
 
   @override
   String m123(String e) {
-    return 'Crop failed: \$e';
+    return '裁剪失败：\$e';
   }
 
   @override
   String channelname(String channelName) {
-    return 'Channel: \$channelName';
+    return '频道：\$channelName';
   }
 
   @override
   String error4(String error) {
-    return 'Download error: \$error';
+    return '下载错误：\$error';
   }
 
   @override
@@ -768,38 +766,66 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String param(Object processed, Object total) {
-    return '$processed/$total';
+    return '已处理：$processed/$total';
   }
 
   @override
-  String get nowPlaying2 => 'Now Playing';
+  String get nowPlaying2 => '正在播放';
 
   @override
-  String get noSongPlaying => 'No song playing';
+  String get noSongPlaying => '当前没有播放歌曲';
 
   @override
-  String get dolbyAtmos => 'Dolby Atmos';
+  String get dolbyAtmos => '杜比全景声';
 
   @override
-  String get k075 => '0.75×';
+  String get k075 => '0.75倍';
 
   @override
-  String get k09 => '0.9×';
+  String get k09 => '0.9倍';
 
   @override
-  String get k10 => '1.0×';
+  String get k10 => '1.0倍';
 
   @override
-  String get k11 => '1.1×';
+  String get k11 => '1.1倍';
 
   @override
-  String get k125 => '1.25×';
+  String get k125 => '1.25倍';
 
   @override
-  String get k15 => '1.5×';
+  String get k15 => '1.5倍';
 
   @override
-  String get k20 => '2.0×';
+  String get k20 => '2.0倍';
+
+  @override
+  String get exportToDownloadsDesc => '以新文件名保存到下载文件夹。';
+
+  @override
+  String get exportLrcButton => '下载 LRC';
+
+  @override
+  String get exportAudioButton => '下载音频';
+
+  @override
+  String exportLrcSuccess(String fileName) {
+    return '已下载 $fileName';
+  }
+
+  @override
+  String exportAudioSuccess(String fileName) {
+    return '已下载 $fileName';
+  }
+
+  @override
+  String get exportLrcFailed => 'LRC 下载失败';
+
+  @override
+  String get exportAudioFailed => '音频文件下载失败';
+
+  @override
+  String get exportNoFile => '无文件';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -819,7 +845,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get commonClose => '關閉';
 
   @override
-  String get commonDetails => 'Details';
+  String get commonDetails => '詳情';
 
   @override
   String get commonDelete => '刪除';
@@ -831,7 +857,89 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get commonReset => '重設';
 
   @override
-  String get errorDetailsTitle => 'Error details';
+  String get tabSongs => '歌曲';
+
+  @override
+  String get tabArtists => '藝術家';
+
+  @override
+  String get tabAlbums => '專輯';
+
+  @override
+  String get tabPlaylists => '播放清單';
+
+  @override
+  String get drawerSettings => '設定';
+
+  @override
+  String get drawerEditCategories => '編輯分類';
+
+  @override
+  String get drawerSort => '排序';
+
+  @override
+  String get errorDetailsTitle => '錯誤詳情';
+
+  @override
+  String get categoryEditTitle => '編輯分類';
+
+  @override
+  String get sortTitleAsc => '標題 (A-Z)';
+
+  @override
+  String get sortTitleDesc => '標題 (Z-A)';
+
+  @override
+  String get sortArtistAsc => '藝術家 (A-Z)';
+
+  @override
+  String get sortArtistDesc => '藝術家 (Z-A)';
+
+  @override
+  String get sortDurationAsc => '時長（較短）';
+
+  @override
+  String get sortDurationDesc => '時長（較長）';
+
+  @override
+  String removedFromQueue(String songName) {
+    return '已從佇列移除「$songName」';
+  }
+
+  @override
+  String get playNext => '接下來播放';
+
+  @override
+  String addedPlayNext(String songName) {
+    return '\"$songName\" 已加入「接下來播放」';
+  }
+
+  @override
+  String get addedToQueue => '已加入佇列';
+
+  @override
+  String get addToPlaylist => '加入播放清單';
+
+  @override
+  String get addToPlaylistTitle => '加入播放清單';
+
+  @override
+  String get createNewPlaylist => '建立新播放清單';
+
+  @override
+  String get existingPlaylists => '現有播放清單';
+
+  @override
+  String get editLyrics => '編輯歌詞';
+
+  @override
+  String get editLyricsLrc => '編輯歌詞 (LRC)';
+
+  @override
+  String get editManually => '手動編輯';
+
+  @override
+  String get adjustTiming => '調整時間';
 
   @override
   String lyricsSaveFailed(String error) {
@@ -839,7 +947,28 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   }
 
   @override
-  String get artistLabel => 'Artist';
+  String get editSongInfo => '編輯歌曲資訊';
+
+  @override
+  String get artworkLabel => '封面';
+
+  @override
+  String get selectImage => '選擇圖片';
+
+  @override
+  String get changeImage => '更換圖片';
+
+  @override
+  String get titleLabel => '標題';
+
+  @override
+  String get artistLabel => '藝術家';
+
+  @override
+  String get albumLabel => '專輯';
+
+  @override
+  String get songUpdated => '歌曲資訊已更新';
 
   @override
   String get metadataSaved => '已儲存資料';
@@ -878,7 +1007,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get removeBackgroundImage => '移除背景圖片';
 
   @override
-  String get adjustBackgroundImage => 'Adjust background image';
+  String get adjustBackgroundImage => '調整背景圖片';
 
   @override
   String get adjustBackgroundImageDesc => '以雙指捏合縮放並移動';
@@ -975,7 +1104,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String importCount(int processed, int total) {
-    return '$processed/$total';
+    return '已處理：$processed/$total';
   }
 
   @override
@@ -1043,7 +1172,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get offset => '偏移';
 
   @override
-  String get apply => 'Apply';
+  String get apply => '套用';
 
   @override
   String get reset => '重置';
@@ -1055,7 +1184,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get upNext => '接下来播放';
 
   @override
-  String get close => 'Close';
+  String get close => '關閉';
 
   @override
   String get queueIsEmpty => '队列为空';
@@ -1091,7 +1220,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get save => '保存';
 
   @override
-  String get cancel => 'Cancel';
+  String get cancel => '取消';
 
   @override
   String get change => '更改';
@@ -1109,7 +1238,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get noData => '没有数据';
 
   @override
-  String get error => 'Error';
+  String get error => '錯誤';
 
   @override
   String get delete => '删除';
@@ -1205,109 +1334,107 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get downloaded => '已下载';
 
   @override
-  String get youtube => 'YouTube audio extraction';
+  String get youtube => 'YouTube 音訊擷取';
 
   @override
-  String get youtubeurl => 'No YouTube URL found in clipboard';
+  String get youtubeurl => '剪貼簿中找不到 YouTube URL';
 
   @override
-  String get youtube2 => 'Convert from YouTube to audio file';
+  String get youtube2 => '將 YouTube 轉換為音訊檔';
 
   @override
-  String get k320Kbps => '320 kbps';
+  String get k320Kbps => '320 千位元每秒';
 
   @override
-  String get k441Khz => '44.1 kHz';
+  String get k441Khz => '44.1 千赫茲';
 
   @override
-  String get mp3M4aFlacWavAiff => 'MP3, M4A, FLAC, WAV, AIFF';
+  String get mp3M4aFlacWavAiff => 'MP3／M4A／FLAC／WAV／AIFF';
 
   @override
-  String get noLyrics => 'No lyrics';
+  String get noLyrics => '無歌詞';
 
   @override
-  String get playbackSpeed => 'Playback speed';
+  String get playbackSpeed => '播放速度';
 
   @override
-  String get loadingLyrics => 'Loading lyrics...';
+  String get loadingLyrics => '歌詞載入中...';
 
   @override
-  String get backgroundCustomize => 'Background customize';
+  String get backgroundCustomize => '背景自訂';
 
   @override
-  String get selectImageFirst => 'Please select an image first';
+  String get selectImageFirst => '請先選擇圖片';
 
   @override
-  String get backgroundSet => 'Background set';
+  String get backgroundSet => '背景已設定';
 
   @override
-  String get backgroundSetFailed => 'Failed to set background';
+  String get backgroundSetFailed => '設定背景失敗';
 
   @override
-  String get thumbnailPreview => 'Preview thumbnail';
+  String get thumbnailPreview => '縮圖預覽';
 
   @override
-  String get lossless => 'Lossless';
+  String get lossless => '無損';
 
   @override
-  String get audioConversionConfirm => 'Confirm audio conversion';
+  String get audioConversionConfirm => '確認音訊轉換';
 
   @override
-  String get confirmDownloadAudioFromVideo => 'Download audio from this video?';
+  String get confirmDownloadAudioFromVideo => '要下載此影片的音訊嗎？';
 
   @override
-  String get download => 'Download';
+  String get download => '下載';
 
   @override
-  String get videotitle => 'Started downloading \"\$videoTitle\"...';
+  String get videotitle => '已開始下載 \"\$videoTitle\"...';
 
   @override
-  String get videotitle2 => 'Finished downloading \"\$videoTitle\"!';
+  String get videotitle2 => '\"\$videoTitle\" 下載完成！';
 
   @override
-  String get videotitle3 => 'Failed to download \"\$videoTitle\"';
+  String get videotitle3 => '下載 \"\$videoTitle\" 失敗';
 
   @override
-  String get downloadCompletedFileNotFound =>
-      'Download completed but file not found';
+  String get downloadCompletedFileNotFound => '下載完成，但找不到檔案';
 
   @override
-  String get downloadCompletedPathUnknown =>
-      'Download completed but file path unknown';
+  String get downloadCompletedPathUnknown => '下載完成，但檔案路徑未知';
 
   @override
-  String get clipboardEmpty => 'Clipboard is empty';
+  String get clipboardEmpty => '剪貼簿是空的';
 
   @override
-  String get outputformat => 'Output format: \$outputFormat';
+  String get outputformat => '輸出格式：\$outputFormat';
 
   @override
-  String get selectOutputFormat => 'Select output format';
+  String get selectOutputFormat => '選擇輸出格式';
 
   @override
-  String get bitrate => 'Bitrate';
+  String get bitrate => '位元率';
 
   @override
-  String get samplingRate => 'Sampling rate';
+  String get samplingRate => '取樣率';
 
   @override
   String e(String e) {
-    return 'Error: \$e';
+    return '錯誤：\$e';
   }
 
   @override
   String m123(String e) {
-    return 'Crop failed: \$e';
+    return '裁切失敗：\$e';
   }
 
   @override
   String channelname(String channelName) {
-    return 'Channel: \$channelName';
+    return '頻道：\$channelName';
   }
 
   @override
   String error4(String error) {
-    return 'Download error: \$error';
+    return '下載錯誤：\$error';
   }
 
   @override
@@ -1321,36 +1448,64 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String param(Object processed, Object total) {
-    return '$processed/$total';
+    return '已處理：$processed/$total';
   }
 
   @override
-  String get nowPlaying2 => 'Now Playing';
+  String get nowPlaying2 => '正在播放';
 
   @override
-  String get noSongPlaying => 'No song playing';
+  String get noSongPlaying => '目前沒有播放歌曲';
 
   @override
-  String get dolbyAtmos => 'Dolby Atmos';
+  String get dolbyAtmos => '杜比全景聲';
 
   @override
-  String get k075 => '0.75×';
+  String get k075 => '0.75倍';
 
   @override
-  String get k09 => '0.9×';
+  String get k09 => '0.9倍';
 
   @override
-  String get k10 => '1.0×';
+  String get k10 => '1.0倍';
 
   @override
-  String get k11 => '1.1×';
+  String get k11 => '1.1倍';
 
   @override
-  String get k125 => '1.25×';
+  String get k125 => '1.25倍';
 
   @override
-  String get k15 => '1.5×';
+  String get k15 => '1.5倍';
 
   @override
-  String get k20 => '2.0×';
+  String get k20 => '2.0倍';
+
+  @override
+  String get exportToDownloadsDesc => '以新名稱儲存到下載資料夾。';
+
+  @override
+  String get exportLrcButton => '下載 LRC';
+
+  @override
+  String get exportAudioButton => '下載音訊';
+
+  @override
+  String exportLrcSuccess(String fileName) {
+    return '已下載 $fileName';
+  }
+
+  @override
+  String exportAudioSuccess(String fileName) {
+    return '已下載 $fileName';
+  }
+
+  @override
+  String get exportLrcFailed => 'LRC 下載失敗';
+
+  @override
+  String get exportAudioFailed => '音訊檔案下載失敗';
+
+  @override
+  String get exportNoFile => '無檔案';
 }

@@ -223,6 +223,12 @@ class LocalAudioServiceImpl implements ILocalAudioService {
         if (mp3Image != null && mp3Image.isNotEmpty) artwork = mp3Image;
       }
 
+      // FLAC: PICTURE メタデータブロック（type=6）から画像抽出
+      if (ext == '.flac') {
+        final flacImage = _findFlacPicture(bytes);
+        if (flacImage != null && flacImage.isNotEmpty) artwork = flacImage;
+      }
+
       final duration = await _estimateDuration(filePath);
 
       // LRCファイルを探して読み込み
@@ -242,7 +248,30 @@ class LocalAudioServiceImpl implements ILocalAudioService {
         filePath: filePath,
       );
     } catch (e) {
-      throw Exception('Failed to get metadata: $e');
+      debugPrint('Failed to get metadata for $filePath: $e');
+
+      Duration duration = Duration.zero;
+      try {
+        duration = await _estimateDuration(filePath);
+      } catch (_) {}
+
+      String lyrics = '';
+      try {
+        final lrcPath = buildLrcPath(filePath);
+        if (File(lrcPath).existsSync()) {
+          lyrics = await readLyricsFile(lrcPath);
+        }
+      } catch (_) {}
+
+      return AudioFileMetadata(
+        title: getFileNameWithoutExtension(filePath),
+        artist: 'Unknown Artist',
+        album: 'Unknown Album',
+        artworkData: null,
+        lyrics: lyrics,
+        duration: duration,
+        filePath: filePath,
+      );
     }
   }
 
@@ -415,7 +444,8 @@ class LocalAudioServiceImpl implements ILocalAudioService {
   // Recursive MP4 box finder: returns the box body for the given 4-byte tag
   // Searches through meta/ilst hierarchy commonly used in M4A files
   // Important: meta atom has version/flags that must be skipped
-  static List<int>? _findMp4Box(List<int> bytes, List<int> tag) {
+  static List<int>? _findMp4Box(List<int> bytes, List<int> tag, [int depth = 0]) {
+    if (depth > 24) return null;
     int i = 0;
     while (i + 8 <= bytes.length) {
       final size = _readUint32(bytes, i);
@@ -438,8 +468,9 @@ class LocalAudioServiceImpl implements ILocalAudioService {
         }
       }
       
-      // Recurse into contained boxes (especially meta, ilst, moov, udta, trak)
-      if (size > 8 && i + 8 < bytes.length) {
+      // Recurse only into known container boxes to avoid scanning binary payload
+      // (e.g. mdat), which can cause deep/invalid recursion and stack overflow.
+      if (size > 8 && i + 8 < bytes.length && _isMp4Container(typeStr)) {
         final bodyStart = i + 8;
         final bodyEnd = (size > 1) ? math.min(i + size, bytes.length) : bytes.length;
         if (bodyEnd > bodyStart && bodyEnd <= bytes.length) {
@@ -447,7 +478,7 @@ class LocalAudioServiceImpl implements ILocalAudioService {
           final searchBody = (typeStr == 'meta' && bodyEnd - bodyStart > 4)
               ? bytes.sublist(bodyStart + 4, bodyEnd)  // Skip version/flags
               : bytes.sublist(bodyStart, bodyEnd);
-          final found = _findMp4Box(searchBody, tag);
+          final found = _findMp4Box(searchBody, tag, depth + 1);
           if (found != null) return found;
         }
       }
@@ -456,6 +487,26 @@ class LocalAudioServiceImpl implements ILocalAudioService {
       i += size;
     }
     return null;
+  }
+
+  static bool _isMp4Container(String type) {
+    switch (type) {
+      case 'moov':
+      case 'udta':
+      case 'meta':
+      case 'ilst':
+      case 'trak':
+      case 'mdia':
+      case 'minf':
+      case 'stbl':
+      case 'edts':
+      case 'dinf':
+      case 'moof':
+      case 'traf':
+        return true;
+      default:
+        return false;
+    }
   }
 
   // ID3v2 frame検索: エンコーディングバイトを考慮してデコード
@@ -637,17 +688,23 @@ class LocalAudioServiceImpl implements ILocalAudioService {
             if (header >= covrBox.length) break;
             // data atom: version(1) + flags(3) + reserved(4) + image data
             final imageStart = math.min(covrBox.length, header + 8);
-            if (imageStart >= covrBox.length) break;
+            final imageEnd = math.min(covrBox.length, pos + size);
+            if (imageStart >= imageEnd) break;
             
-            final imageData = covrBox.sublist(imageStart);
+            final imageData = covrBox.sublist(imageStart, imageEnd);
             debugPrint('[MP4 covr] Found data atom with ${imageData.length} bytes');
             
             // Verify it's JPEG or PNG
-            if (imageData.length > 1000) {
+            // 一部のファイルでは covr が非常に小さい正当な画像 (例: 数十〜数百 bytes の PNG) のため、
+            // ここでは過度に大きい閾値で弾かない。
+            if (imageData.length >= 16) {
               if ((imageData[0] == 0xFF && imageData[1] == 0xD8) ||
                   (imageData[0] == 0x89 && imageData[1] == 0x50)) {
-                debugPrint('[MP4 covr] Valid image data found');
-                return Uint8List.fromList(imageData);
+                final decoded = img.decodeImage(Uint8List.fromList(imageData));
+                if (decoded != null) {
+                  debugPrint('[MP4 covr] Valid image data found (${imageData.length} bytes)');
+                  return Uint8List.fromList(imageData);
+                }
               }
             }
             break;
@@ -669,8 +726,11 @@ class LocalAudioServiceImpl implements ILocalAudioService {
           if (bytes[j] == 0xFF && bytes[j + 1] == 0xD9) {
             final imageData = bytes.sublist(i, j + 2);
             if (imageData.length > 1000) {
-              debugPrint('[MP4 JPEG fallback] Found JPEG ${imageData.length} bytes');
-              return Uint8List.fromList(imageData);
+              final decoded = img.decodeImage(Uint8List.fromList(imageData));
+              if (decoded != null) {
+                debugPrint('[MP4 JPEG fallback] Found JPEG ${imageData.length} bytes');
+                return Uint8List.fromList(imageData);
+              }
             }
           }
         }
@@ -682,14 +742,72 @@ class LocalAudioServiceImpl implements ILocalAudioService {
             final endPos = (k + 8) < bytes.length ? k + 8 : k + 4;
             final imageData = bytes.sublist(i, endPos);
             if (imageData.length > 1000) {
-              debugPrint('[MP4 PNG fallback] Found PNG ${imageData.length} bytes');
-              return Uint8List.fromList(imageData);
+              final decoded = img.decodeImage(Uint8List.fromList(imageData));
+              if (decoded != null) {
+                debugPrint('[MP4 PNG fallback] Found PNG ${imageData.length} bytes');
+                return Uint8List.fromList(imageData);
+              }
             }
           }
         }
       }
     }
     debugPrint('[MP4 covr] No image data found');
+    return null;
+  }
+
+  // FLAC の PICTURE メタデータブロック(type=6)から画像を抽出
+  static Uint8List? _findFlacPicture(List<int> bytes) {
+    try {
+      if (bytes.length < 4) return null;
+      if (!(bytes[0] == 0x66 && bytes[1] == 0x4C && bytes[2] == 0x61 && bytes[3] == 0x43)) {
+        return null;
+      }
+
+      int pos = 4;
+      while (pos + 4 <= bytes.length) {
+        final header = bytes[pos];
+        final isLast = (header & 0x80) != 0;
+        final blockType = header & 0x7F;
+        final blockLen = (bytes[pos + 1] << 16) | (bytes[pos + 2] << 8) | bytes[pos + 3];
+        pos += 4;
+
+        if (blockLen < 0 || pos + blockLen > bytes.length) break;
+
+        if (blockType == 6) {
+          final block = bytes.sublist(pos, pos + blockLen);
+          int p = 0;
+          if (block.length < 32) return null;
+
+          p += 4; // picture type
+          final mimeLen = _readUint32(block, p); p += 4;
+          if (mimeLen < 0 || p + mimeLen > block.length) return null;
+          p += mimeLen;
+
+          final descLen = _readUint32(block, p); p += 4;
+          if (descLen < 0 || p + descLen > block.length) return null;
+          p += descLen;
+
+          p += 4; // width
+          p += 4; // height
+          p += 4; // depth
+          p += 4; // indexed colors
+          if (p + 4 > block.length) return null;
+
+          final dataLen = _readUint32(block, p); p += 4;
+          if (dataLen <= 0 || p + dataLen > block.length) return null;
+
+          final imageData = block.sublist(p, p + dataLen);
+          if (imageData.length > 100) {
+            return Uint8List.fromList(imageData);
+          }
+          return null;
+        }
+
+        pos += blockLen;
+        if (isLast) break;
+      }
+    } catch (_) {}
     return null;
   }
 
@@ -884,18 +1002,9 @@ class LocalAudioServiceImpl implements ILocalAudioService {
 
   /// LRC ファイルのパスを構築
   static String buildLrcPath(String audioFilePath) {
-    final audioDir = path.dirname(audioFilePath);
-    final normalizedDir = path.normalize(audioDir).replaceAll('\\', '/');
+    final dir = path.dirname(audioFilePath);
     final nameWithoutExt = getFileNameWithoutExtension(audioFilePath);
-
-    // iOS向け: .../MUSIC LIKE/library 配下の音源は
-    // .../MUSIC LIKE/LRC 配下の同名LRCを参照する。
-    if (normalizedDir.endsWith('/MUSIC LIKE/library')) {
-      final appRootDir = path.dirname(audioDir);
-      return path.join(appRootDir, 'LRC', '$nameWithoutExt$lyricsExtension');
-    }
-
-    return path.join(audioDir, '$nameWithoutExt$lyricsExtension');
+    return path.join(dir, '$nameWithoutExt$lyricsExtension');
   }
 
   /// 拡張子のチェック
@@ -940,6 +1049,11 @@ Map<String, dynamic> _computeMetadata(String filePath) {
       if (talb != null && talb.isNotEmpty) album = talb;
       final mp3Image = LocalAudioServiceImpl._findMp3Image(bytes);
       if (mp3Image != null && mp3Image.isNotEmpty) artwork = mp3Image;
+    }
+
+    if (ext == '.flac') {
+      final flacImage = LocalAudioServiceImpl._findFlacPicture(bytes);
+      if (flacImage != null && flacImage.isNotEmpty) artwork = flacImage;
     }
 
     // Simple duration estimate using file size (fast, synchronous)
@@ -1013,12 +1127,15 @@ List<Map<String, dynamic>> _computeMetadataBatch(Map<String, dynamic> args) {
 
       final fileLen = file.lengthSync();
       List<int> bytes;
+      final bool isLargeFile;
       if (fileLen <= maxReadBytes) {
         bytes = file.readAsBytesSync();
+        isLargeFile = false;
       } else {
         final raf = file.openSync();
         bytes = raf.readSync(maxReadBytes);
         raf.closeSync();
+        isLargeFile = true;
       }
 
       final ext = path.extension(filePath).toLowerCase();
@@ -1035,6 +1152,26 @@ List<Map<String, dynamic>> _computeMetadataBatch(Map<String, dynamic> args) {
         if (art != null && art.isNotEmpty) artist = art;
         if (alb != null && alb.isNotEmpty) album = alb;
         artwork = LocalAudioServiceImpl._findMp4Image(bytes);
+
+        // Large MP4/M4A files may place metadata/cover outside the first chunk.
+        // If partial read failed to find artwork, retry with the full file once.
+        if (isLargeFile && (artwork == null || artwork.isEmpty)) {
+          try {
+            final fullBytes = file.readAsBytesSync();
+            final fullName = LocalAudioServiceImpl._findMp4AtomText(fullBytes, [0xA9, 0x6E, 0x61, 0x6D]);
+            final fullArt = LocalAudioServiceImpl._findMp4AtomText(fullBytes, [0xA9, 0x41, 0x52, 0x54]);
+            final fullAlb = LocalAudioServiceImpl._findMp4AtomText(fullBytes, [0xA9, 0x61, 0x6C, 0x62]);
+            if (fullName != null && fullName.isNotEmpty) title = fullName;
+            if (fullArt != null && fullArt.isNotEmpty) artist = fullArt;
+            if (fullAlb != null && fullAlb.isNotEmpty) album = fullAlb;
+            final fullArtwork = LocalAudioServiceImpl._findMp4Image(fullBytes);
+            if (fullArtwork != null && fullArtwork.isNotEmpty) {
+              artwork = fullArtwork;
+            }
+          } catch (_) {
+            // keep partial-read result
+          }
+        }
       }
 
       if (ext == '.mp3') {
@@ -1045,6 +1182,10 @@ List<Map<String, dynamic>> _computeMetadataBatch(Map<String, dynamic> args) {
         if (tpe1 != null && tpe1.isNotEmpty) artist = tpe1;
         if (talb != null && talb.isNotEmpty) album = talb;
         artwork = LocalAudioServiceImpl._findMp3Image(bytes);
+      }
+
+      if (ext == '.flac') {
+        artwork = LocalAudioServiceImpl._findFlacPicture(bytes);
       }
 
       // Simple duration estimate using file size

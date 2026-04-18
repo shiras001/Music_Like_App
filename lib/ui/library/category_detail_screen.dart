@@ -14,6 +14,7 @@ class _CategoryDetailScreen extends ConsumerWidget {
   final CategoryDetailType type;
   final String title;
   final List<Song> songs;
+  final String? playlistId;
   final String? subtitle;
   final String? artworkUrl;
   final String? heroTag;
@@ -22,6 +23,7 @@ class _CategoryDetailScreen extends ConsumerWidget {
     required this.type,
     required this.title,
     required this.songs,
+    this.playlistId,
     this.subtitle,
     this.artworkUrl,
     this.heroTag,
@@ -30,6 +32,9 @@ class _CategoryDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final latestLibrarySongs = ref.watch(libraryViewModelProvider).songs;
+    final baseSongIds = songs.map((s) => s.id).toSet();
+    final displaySongs = latestLibrarySongs.where((s) => baseSongIds.contains(s.id)).toList();
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       bottomNavigationBar: const MiniPlayer(),
@@ -90,7 +95,7 @@ class _CategoryDetailScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            l10n.songCount(songs.length),
+                            l10n.songCount(displaySongs.length),
                             style: const TextStyle(color: Colors.grey, fontSize: 14),
                             textAlign: TextAlign.center,
                           ),
@@ -114,8 +119,8 @@ class _CategoryDetailScreen extends ConsumerWidget {
                     child: ElevatedButton.icon(
                       onPressed: () {
                         _tapFeedback(context);
-                        if (songs.isNotEmpty) {
-                          ref.read(playerViewModelProvider.notifier).setQueue(songs, startIndex: 0);
+                        if (displaySongs.isNotEmpty) {
+                          ref.read(playerViewModelProvider.notifier).setQueue(displaySongs, startIndex: 0);
                         }
                       },
                       icon: Icon(Icons.play_arrow, color: Theme.of(context).iconTheme.color),
@@ -138,8 +143,8 @@ class _CategoryDetailScreen extends ConsumerWidget {
                     child: ElevatedButton.icon(
                       onPressed: () {
                         _tapFeedback(context);
-                        if (songs.isNotEmpty) {
-                          ref.read(playerViewModelProvider.notifier).setQueue(songs, startIndex: 0);
+                        if (displaySongs.isNotEmpty) {
+                          ref.read(playerViewModelProvider.notifier).setQueue(displaySongs, startIndex: 0);
                           ref.read(playerViewModelProvider.notifier).toggleShuffle();
                         }
                       },
@@ -166,7 +171,7 @@ class _CategoryDetailScreen extends ConsumerWidget {
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
-                final song = songs[index];
+                final song = displaySongs[index];
                 return ListTile(
                   leading: Container(
                     width: 32,
@@ -202,15 +207,15 @@ class _CategoryDetailScreen extends ConsumerWidget {
                   ),
                   onTap: () {
                     _tapFeedback(context);
-                    ref.read(playerViewModelProvider.notifier).setQueue(songs, startIndex: index, autoPlay: true);
+                    ref.read(playerViewModelProvider.notifier).setQueue(displaySongs, startIndex: index, autoPlay: true);
                   },
                   onLongPress: () {
                     _tapFeedback(context);
-                    _showSongContextMenu(context, ref, song, songs);
+                    _showSongContextMenu(context, ref, song, displaySongs);
                   },
                 );
               },
-              childCount: songs.length,
+              childCount: displaySongs.length,
             ),
           ),
         ],
@@ -271,11 +276,14 @@ class _CategoryDetailScreen extends ConsumerWidget {
       context: context,
       backgroundColor: Theme.of(context).colorScheme.surface,
       builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
             ListTile(
-              leading: Icon(Icons.playlist_play, color: Theme.of(context).iconTheme.color),
+              leading: Icon(Icons.playlist_play, color: Theme.of(context).textTheme.bodyMedium?.color),
               title: Text(l10n.playNext, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
               onTap: () {
                 _tapFeedback(context);
@@ -291,7 +299,7 @@ class _CategoryDetailScreen extends ConsumerWidget {
               },
             ),
             ListTile(
-              leading: Icon(Icons.playlist_add, color: Theme.of(context).iconTheme.color),
+              leading: Icon(Icons.playlist_add, color: Theme.of(context).textTheme.bodyMedium?.color),
               title: Text(l10n.addToPlaylist, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
               onTap: () {
                 _tapFeedback(context);
@@ -300,7 +308,7 @@ class _CategoryDetailScreen extends ConsumerWidget {
               },
             ),
             ListTile(
-              leading: Icon(Icons.lyrics, color: Theme.of(context).iconTheme.color),
+              leading: Icon(Icons.lyrics, color: Theme.of(context).textTheme.bodyMedium?.color),
               title: Text(l10n.editLyrics, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
               onTap: () {
                 _tapFeedback(context);
@@ -309,7 +317,7 @@ class _CategoryDetailScreen extends ConsumerWidget {
               },
             ),
             ListTile(
-              leading: Icon(Icons.edit, color: Theme.of(context).iconTheme.color),
+              leading: Icon(Icons.edit, color: Theme.of(context).textTheme.bodyMedium?.color),
               title: Text(l10n.editSongInfo, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
               onTap: () {
                 _tapFeedback(context);
@@ -344,10 +352,17 @@ class _CategoryDetailScreen extends ConsumerWidget {
                       TextButton(
                         onPressed: () {
                           Navigator.pop(context);
-                          ref.read(libraryViewModelProvider.notifier).deleteSong(song.id);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('「${song.title}」を削除しました')),
-                          );
+                          if (type == CategoryDetailType.playlist && playlistId != null) {
+                            ref.read(playlistViewModelProvider.notifier).removeSongFromPlaylist(playlistId!, song.id);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('プレイリストから「${song.title}」を削除しました')),
+                            );
+                          } else {
+                            ref.read(libraryViewModelProvider.notifier).deleteSong(song.id);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('「${song.title}」を削除しました')),
+                            );
+                          }
                         },
                         child: const Text('削除', style: TextStyle(color: Colors.red)),
                       ),
@@ -357,6 +372,8 @@ class _CategoryDetailScreen extends ConsumerWidget {
               },
             ),
           ],
+            ),
+          ),
         ),
       ),
     );
@@ -632,7 +649,20 @@ class _CategoryDetailScreen extends ConsumerWidget {
                           }
                         },
                         icon: Icon(Icons.image, color: Theme.of(context).colorScheme.primary),
-                        label: Text(l10n.changeImage, style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+                        label: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            _breakByHalfWidthSpace(l10n.changeImage),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            softWrap: false,
+                            overflow: TextOverflow.visible,
+                            style: _imageActionLabelStyle(
+                              dialogContext,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ),
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(color: Theme.of(context).colorScheme.primary),
                         ),
@@ -699,11 +729,41 @@ class _CategoryDetailScreen extends ConsumerWidget {
             TextButton(
               onPressed: () async {
                 Navigator.pop(dialogContext);
+                final resolvedAudioPath = await resolveEditableAudioPath(song.localPath);
+                final writableAudioPath = (resolvedAudioPath == null || resolvedAudioPath.isEmpty)
+                    ? song.localPath
+                    : resolvedAudioPath;
+                if (writableAudioPath == null || writableAudioPath.isEmpty) {
+                  _warningFeedback();
+                  if (context.mounted) {
+                    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+                      SnackBar(content: Text(_t(context, ja: '楽曲ファイルの保存先が見つかりません。', en: 'Unable to locate target audio file.', zh: '找不到目标音频文件。'))),
+                    );
+                  }
+                  return;
+                }
+                final needsExternalPermission = !_isManagedInternalPath(writableAudioPath);
+                if (needsExternalPermission) {
+                  final canWrite = await ensureStorageAndAudioPermissions(
+                    dialogContext,
+                    forWrite: true,
+                    targetPath: writableAudioPath,
+                  );
+                  if (!canWrite) {
+                    _warningFeedback();
+                    if (context.mounted) {
+                      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+                        SnackBar(content: Text(_t(context, ja: 'ファイルへの書き込み権限がありません。設定から「すべてのファイルへのアクセス」を許可してください。', en: 'No write permission for file. Please allow all-files access in settings.', zh: '没有文件写入权限。请在设置中允许所有文件访问。'))),
+                      );
+                    }
+                    return;
+                  }
+                }
                 String? finalArtworkPath = selectedArtworkPath;
                 if (selectedArtworkPath != null && song.localPath != null) {
                   try {
-                    final dir = p.dirname(song.localPath!);
-                    final base = p.basenameWithoutExtension(song.localPath!);
+                    final dir = p.dirname(writableAudioPath);
+                    final base = p.basenameWithoutExtension(writableAudioPath);
                     final ext = p.extension(selectedArtworkPath!).isEmpty ? '.jpg' : p.extension(selectedArtworkPath!);
                     final destPath = p.join(dir, '${base}_cover$ext');
                     if (selectedArtworkPath! != destPath) {
@@ -720,21 +780,30 @@ class _CategoryDetailScreen extends ConsumerWidget {
                   }
                 }
 
-                await ref.read(libraryViewModelProvider.notifier).updateSongMetadata(
-                  song.id,
-                  {
-                    'title': titleController.text.trim(),
-                    'artist': artistController.text.trim(),
-                    'album': albumController.text.trim(),
-                    'artworkUrl': finalArtworkPath,
-                    'localPath': song.localPath,
-                  },
-                );
-                _successFeedback();
-                if (context.mounted) {
-                  ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-                    SnackBar(content: Text(l10n.metadataSaved)),
+                try {
+                  await ref.read(libraryViewModelProvider.notifier).updateSongMetadata(
+                    song.id,
+                    {
+                      'title': titleController.text.trim(),
+                      'artist': artistController.text.trim(),
+                      'album': albumController.text.trim(),
+                      'artworkUrl': finalArtworkPath,
+                      'localPath': writableAudioPath,
+                    },
                   );
+                  _successFeedback();
+                  if (context.mounted) {
+                    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+                      SnackBar(content: Text(l10n.metadataSaved)),
+                    );
+                  }
+                } catch (e) {
+                  _warningFeedback();
+                  if (context.mounted) {
+                    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+                      SnackBar(content: Text(_t(context, ja: 'メタデータの保存に失敗しました: $e', en: 'Failed to save metadata: $e', zh: '保存元数据失败: $e'))),
+                    );
+                  }
                 }
               },
               child: Text(l10n.commonSave, style: TextStyle(color: Theme.of(dialogContext).colorScheme.primary)),
@@ -752,18 +821,29 @@ class _CategoryDetailScreen extends ConsumerWidget {
       l10n.editLyrics,
     );
     if (!ok) return;
-    final defaultLyricsPath = song.lyricsPath ??
-        (song.localPath != null
-            ? p.join(
-                p.dirname(song.localPath!),
-                '${p.basenameWithoutExtension(song.localPath!)}.lrc',
-              )
-            : null);
+    final writableAudioPath = await resolveEditableAudioPath(song.localPath);
+    final defaultLyricsPath =
+        (song.lyricsPath != null && !_isManagedInternalPath(song.lyricsPath))
+            ? song.lyricsPath
+            : (writableAudioPath != null
+                ? p.join(
+                    p.dirname(writableAudioPath),
+                    '${p.basenameWithoutExtension(writableAudioPath)}.lrc',
+                  )
+                : null);
 
     String initialText = '';
     if (defaultLyricsPath != null && File(defaultLyricsPath).existsSync()) {
       try {
         initialText = await File(defaultLyricsPath).readAsString();
+      } catch (_) {}
+    }
+    if (initialText.isEmpty && song.lyricsPath != null && song.lyricsPath!.isNotEmpty) {
+      try {
+        final originalLyricsFile = File(song.lyricsPath!);
+        if (await originalLyricsFile.exists()) {
+          initialText = await originalLyricsFile.readAsString();
+        }
       } catch (_) {}
     }
 
@@ -807,13 +887,13 @@ class _CategoryDetailScreen extends ConsumerWidget {
                 );
                 return;
               }
-              // Ensure storage permission before attempting to write
-              final ok = await ensureStorageAndAudioPermissions(dialogContext);
-              if (!ok) {
+              if (_isManagedInternalPath(defaultLyricsPath)) {
                 _warningFeedback();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(_t(context, ja: 'ストレージ権限が必要です', en: 'Storage permission required', zh: '需要存储权限'))),
-                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(_t(context, ja: '端末の実ファイルを特定できないため歌詞を直接上書きできません。フォルダ読み込みで再インポートしてください。', en: 'Cannot locate original local file for direct lyrics overwrite. Please re-import from folder scan.', zh: '无法定位原始本地文件，无法直接覆盖歌词。请从文件夹扫描重新导入。'))),
+                  );
+                }
                 return;
               }
               try {

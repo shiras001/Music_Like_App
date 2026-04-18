@@ -74,15 +74,6 @@ class _LrcAdjustScreenState extends ConsumerState<_LrcAdjustScreen> {
     final file = await _getLrcFile();
     if (file == null || _offsetMs == 0) return;
 
-    // Ensure storage permission before writing
-    final ok = await ensureStorageAndAudioPermissions(context);
-    if (!ok) {
-      setState(() {
-        _error = 'ストレージ権限が必要です';
-      });
-      return;
-    }
-
     final backupPath = '${file.path}.bak';
     final backupFile = File(backupPath);
     if (!backupFile.existsSync()) {
@@ -119,9 +110,6 @@ class _LrcAdjustScreenState extends ConsumerState<_LrcAdjustScreen> {
     final backupPath = '${file.path}.bak';
     final backupFile = File(backupPath);
     if (!backupFile.existsSync()) return;
-    // Ensure permission before restoring
-    final ok = await ensureStorageAndAudioPermissions(context);
-    if (!ok) return;
     await file.writeAsString(await backupFile.readAsString());
     setState(() {
       _offsetMs = 0;

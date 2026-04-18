@@ -422,7 +422,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String importCount(int processed, int total) {
-    return '$processed/$total';
+    return '수행: $processed/$total';
   }
 
   @override
@@ -488,46 +488,46 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get offset => 'Offset';
+  String get offset => '오프셋';
 
   @override
-  String get apply => 'Apply';
+  String get apply => '적용';
 
   @override
-  String get reset => 'Reset';
+  String get reset => '초기화';
 
   @override
-  String get noLrcFileFound => 'No LRC file found';
+  String get noLrcFileFound => 'LRC 파일을 찾을 수 없음';
 
   @override
-  String get upNext => 'Up Next';
+  String get upNext => '다음 재생';
 
   @override
-  String get close => 'Close';
+  String get close => '닫기';
 
   @override
-  String get queueIsEmpty => 'Queue is empty';
+  String get queueIsEmpty => '대기열이 비어 있습니다';
 
   @override
-  String get selectASong => 'Select a song';
+  String get selectASong => '노래 선택';
 
   @override
-  String get play => 'Play';
+  String get play => '재생';
 
   @override
-  String get applyChanges2 => 'Apply changes';
+  String get applyChanges2 => '변경 적용';
 
   @override
-  String get restore2 => 'Restore';
+  String get restore2 => '복원';
 
   @override
-  String get previewFirst30Lines => 'Preview (first 30 lines)';
+  String get previewFirst30Lines => '미리보기(처음 30줄)';
 
   @override
-  String get customColor => 'Custom color';
+  String get customColor => '사용자 지정 색상';
 
   @override
-  String get darkMode => 'Dark mode';
+  String get darkMode => '다크 모드';
 
   @override
   String get appLanguage => 'App language';
@@ -536,122 +536,121 @@ class AppLocalizationsKo extends AppLocalizations {
   String get followSystemSetting => '시스템 언어';
 
   @override
-  String get save => 'Save';
+  String get save => '저장';
 
   @override
-  String get cancel => 'Cancel';
+  String get cancel => '취소';
 
   @override
-  String get change => 'Change';
+  String get change => '변경';
 
   @override
   String get selectLanguage2 => 'Select language';
 
   @override
-  String get confirm => 'Confirm';
+  String get confirm => '확인';
 
   @override
-  String get execute => 'Execute';
+  String get execute => '실행';
 
   @override
-  String get noData => 'No data';
+  String get noData => '데이터 없음';
 
   @override
-  String get error => 'Error';
+  String get error => '오류';
 
   @override
-  String get delete => 'Delete';
+  String get delete => '삭제';
 
   @override
-  String get search => 'Search';
+  String get search => '검색';
 
   @override
-  String get artist => 'Artist';
+  String get artist => '아티스트';
 
   @override
-  String get tracks => 'Tracks';
+  String get tracks => '곡';
 
   @override
-  String get albums => 'Albums';
+  String get albums => '앨범';
 
   @override
-  String get createPlaylist2 => 'Create playlist';
+  String get createPlaylist2 => '재생목록 만들기';
 
   @override
-  String get playpause => 'Play/Pause';
+  String get playpause => '재생/일시정지';
 
   @override
-  String get next => 'Next';
+  String get next => '다음';
 
   @override
-  String get previous => 'Previous';
+  String get previous => '이전';
 
   @override
-  String get collection => 'Collection';
+  String get collection => '컬렉션';
 
   @override
-  String get artistTrackAlbum => 'Artist, track, album';
+  String get artistTrackAlbum => '아티스트, 곡, 앨범';
 
   @override
-  String get welcome => 'Welcome';
+  String get welcome => '환영합니다';
 
   @override
-  String get getStarted => 'Get started';
+  String get getStarted => '시작하기';
 
   @override
-  String get showDebugInfo => 'Show debug info';
+  String get showDebugInfo => '디버그 정보 표시';
 
   @override
-  String get clear => 'Clear';
+  String get clear => '지우기';
 
   @override
-  String get clearCache => 'Clear cache';
+  String get clearCache => '캐시 지우기';
 
   @override
-  String get yes => 'Yes';
+  String get yes => '예';
 
   @override
-  String get no => 'No';
+  String get no => '아니요';
 
   @override
-  String get switchTheme => 'Switch theme';
+  String get switchTheme => '테마 전환';
 
   @override
-  String get light => 'Light';
+  String get light => '라이트';
 
   @override
-  String get dark => 'Dark';
+  String get dark => '다크';
 
   @override
-  String get system => 'System';
+  String get system => '시스템';
 
   @override
-  String get play2 => 'Play';
+  String get play2 => '재생';
 
   @override
-  String get playQueue => 'Play queue';
+  String get playQueue => '대기열 재생';
 
   @override
-  String get remove => 'Remove';
+  String get remove => '제거';
 
   @override
-  String get migrateSettingsFromOlderVersions =>
-      'Migrate settings from older versions';
+  String get migrateSettingsFromOlderVersions => '이전 버전 설정 마이그레이션';
 
   @override
-  String get tracks2 => 'Tracks';
+  String get tracks2 => '곡';
 
   @override
-  String get anErrorOccurred => 'An error occurred';
+  String get anErrorOccurred => '오류가 발생했습니다';
 
   @override
-  String get loading => 'Loading...';
+  String get loading => '불러오는 중...';
 
   @override
-  String get offlineMode => 'Offline mode';
+  String get offlineMode => '오프라인 모드';
 
   @override
-  String get downloaded => 'Downloaded';
+  String get downloaded => '다운로드됨';
 
   @override
   String get youtube => 'YouTube audio extraction';
@@ -760,17 +759,17 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get import => 'Import';
+  String get import => '가져오기';
 
   @override
-  String get export => 'Export';
+  String get export => '내보내기';
 
   @override
-  String get nowPlaying => 'Now playing';
+  String get nowPlaying => '지금 재생 중';
 
   @override
   String param(Object processed, Object total) {
-    return '$processed/$total';
+    return '처리됨: $processed/$total';
   }
 
   @override
@@ -802,4 +801,32 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get k20 => '2.0×';
+
+  @override
+  String get exportToDownloadsDesc => '다운로드 폴더에 다른 이름으로 저장합니다.';
+
+  @override
+  String get exportLrcButton => 'LRC 다운로드';
+
+  @override
+  String get exportAudioButton => '오디오 다운로드';
+
+  @override
+  String exportLrcSuccess(String fileName) {
+    return '$fileName 다운로드 완료';
+  }
+
+  @override
+  String exportAudioSuccess(String fileName) {
+    return '$fileName 다운로드 완료';
+  }
+
+  @override
+  String get exportLrcFailed => 'LRC 다운로드에 실패했습니다';
+
+  @override
+  String get exportAudioFailed => '오디오 다운로드에 실패했습니다';
+
+  @override
+  String get exportNoFile => '파일 없음';
 }

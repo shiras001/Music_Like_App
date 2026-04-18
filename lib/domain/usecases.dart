@@ -354,6 +354,15 @@ class LocalFileImportUseCase {
     try {
       final metadata = await _localAudioService.getMetadata(filePath);
 
+      String? artworkPath;
+      if (metadata.artworkData != null && metadata.artworkData!.isNotEmpty) {
+        try {
+          artworkPath = await ThumbnailStore.saveThumbnail(filePath, metadata.artworkData!);
+        } catch (_) {
+          artworkPath = null;
+        }
+      }
+
       final song = Song(
         id: filePath,
         title: metadata.title,
@@ -363,11 +372,8 @@ class LocalFileImportUseCase {
         fileFormat: _getFileFormat(filePath),
         localPath: filePath,
         isLocal: true,
-        lyricsPath: metadata.lyrics.isNotEmpty
-            ? (File(LocalAudioServiceImpl.buildLrcPath(filePath)).existsSync()
-                ? LocalAudioServiceImpl.buildLrcPath(filePath)
-                : null)
-            : null,
+        lyricsPath: metadata.lyrics.isNotEmpty ? filePath.replaceAll(RegExp(r'\.[^.]*$'), '.lrc') : null,
+        artworkUrl: artworkPath,
       );
       await _musicRepo.upsertSong(song);
       return song;
@@ -392,7 +398,39 @@ class LocalFileImportUseCase {
 
     final supported = filePaths.where(isSupportedFormat).toList();
     final existing = await _musicRepo.getExistingLocalPaths(supported);
-    final pending = supported.where((p) => !existing.contains(p)).toList();
+
+    // 既存曲のうち、サムネイル未設定（またはファイル消失）だけは再解析対象に含める
+    final refreshCandidates = <String>{};
+    if (existing.isNotEmpty) {
+      try {
+        final library = await _musicRepo.fetchLibrary();
+        final byLocalPath = <String, Song>{};
+        for (final song in library) {
+          final localPath = song.localPath;
+          if (localPath != null && localPath.isNotEmpty) {
+            byLocalPath[localPath] = song;
+          }
+        }
+
+        for (final path in existing) {
+          final song = byLocalPath[path];
+          if (song == null) continue;
+          final artworkPath = song.artworkUrl;
+          final hasArtwork = artworkPath != null &&
+              artworkPath.isNotEmpty &&
+              File(artworkPath).existsSync();
+          if (!hasArtwork) {
+            refreshCandidates.add(path);
+          }
+        }
+      } catch (_) {
+        // refreshCandidates は空のまま（従来どおり既存曲をスキップ）
+      }
+    }
+
+    final pending = supported
+        .where((p) => !existing.contains(p) || refreshCandidates.contains(p))
+        .toList();
 
     final total = pending.length;
     int processed = 0;

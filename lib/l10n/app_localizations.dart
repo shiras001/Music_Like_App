@@ -1601,6 +1601,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'2.0×'**
   String get k20;
+
+  /// No description provided for @exportToDownloadsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to download folder with a new name.'**
+  String get exportToDownloadsDesc;
+
+  /// No description provided for @exportLrcButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Download LRC'**
+  String get exportLrcButton;
+
+  /// No description provided for @exportAudioButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Download audio'**
+  String get exportAudioButton;
+
+  /// No description provided for @exportLrcSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded {fileName}'**
+  String exportLrcSuccess(String fileName);
+
+  /// No description provided for @exportAudioSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded {fileName}'**
+  String exportAudioSuccess(String fileName);
+
+  /// No description provided for @exportLrcFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to download LRC'**
+  String get exportLrcFailed;
+
+  /// No description provided for @exportAudioFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to download audio'**
+  String get exportAudioFailed;
+
+  /// No description provided for @exportNoFile.
+  ///
+  /// In en, this message translates to:
+  /// **'No file'**
+  String get exportNoFile;
 }
 
 class _AppLocalizationsDelegate

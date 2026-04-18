@@ -423,7 +423,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String importCount(int processed, int total) {
-    return '$processed/$total';
+    return 'Procesado: $processed/$total';
   }
 
   @override
@@ -458,7 +458,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get supportedQualityTitle => 'Calidad compatible';
 
   @override
-  String get supportedQualityDesc => 'Lossless, Dolby Atmos';
+  String get supportedQualityDesc => 'Sin pérdida, Dolby Atmos';
 
   @override
   String get lrcAdjustTitle => 'Ajuste LRC';
@@ -489,46 +489,46 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get offset => 'Offset';
+  String get offset => 'Desfase';
 
   @override
-  String get apply => 'Apply';
+  String get apply => 'Aplicar';
 
   @override
-  String get reset => 'Reset';
+  String get reset => 'Restablecer';
 
   @override
-  String get noLrcFileFound => 'No LRC file found';
+  String get noLrcFileFound => 'No se encontró archivo LRC';
 
   @override
-  String get upNext => 'Up Next';
+  String get upNext => 'A continuación';
 
   @override
-  String get close => 'Close';
+  String get close => 'Cerrar';
 
   @override
-  String get queueIsEmpty => 'Queue is empty';
+  String get queueIsEmpty => 'La cola está vacía';
 
   @override
-  String get selectASong => 'Select a song';
+  String get selectASong => 'Selecciona una canción';
 
   @override
-  String get play => 'Play';
+  String get play => 'Reproducir';
 
   @override
-  String get applyChanges2 => 'Apply changes';
+  String get applyChanges2 => 'Aplicar cambios';
 
   @override
-  String get restore2 => 'Restore';
+  String get restore2 => 'Restaurar';
 
   @override
-  String get previewFirst30Lines => 'Preview (first 30 lines)';
+  String get previewFirst30Lines => 'Vista previa (primeras 30 líneas)';
 
   @override
-  String get customColor => 'Custom color';
+  String get customColor => 'Color personalizado';
 
   @override
-  String get darkMode => 'Dark mode';
+  String get darkMode => 'Modo oscuro';
 
   @override
   String get appLanguage => 'App language';
@@ -537,122 +537,122 @@ class AppLocalizationsEs extends AppLocalizations {
   String get followSystemSetting => 'Idioma del sistema';
 
   @override
-  String get save => 'Save';
+  String get save => 'Guardar';
 
   @override
-  String get cancel => 'Cancel';
+  String get cancel => 'Cancelar';
 
   @override
-  String get change => 'Change';
+  String get change => 'Cambiar';
 
   @override
   String get selectLanguage2 => 'Select language';
 
   @override
-  String get confirm => 'Confirm';
+  String get confirm => 'Confirmar';
 
   @override
-  String get execute => 'Execute';
+  String get execute => 'Ejecutar';
 
   @override
-  String get noData => 'No data';
+  String get noData => 'Sin datos';
 
   @override
-  String get error => 'Error';
+  String get error => 'Error detectado';
 
   @override
-  String get delete => 'Delete';
+  String get delete => 'Eliminar';
 
   @override
-  String get search => 'Search';
+  String get search => 'Buscar';
 
   @override
-  String get artist => 'Artist';
+  String get artist => 'Artista';
 
   @override
-  String get tracks => 'Tracks';
+  String get tracks => 'Canciones';
 
   @override
-  String get albums => 'Albums';
+  String get albums => 'Álbumes';
 
   @override
-  String get createPlaylist2 => 'Create playlist';
+  String get createPlaylist2 => 'Crear lista';
 
   @override
-  String get playpause => 'Play/Pause';
+  String get playpause => 'Reproducir/Pausar';
 
   @override
-  String get next => 'Next';
+  String get next => 'Siguiente';
 
   @override
-  String get previous => 'Previous';
+  String get previous => 'Anterior';
 
   @override
-  String get collection => 'Collection';
+  String get collection => 'Colección';
 
   @override
-  String get artistTrackAlbum => 'Artist, track, album';
+  String get artistTrackAlbum => 'Artista, canción, álbum';
 
   @override
-  String get welcome => 'Welcome';
+  String get welcome => 'Bienvenido';
 
   @override
-  String get getStarted => 'Get started';
+  String get getStarted => 'Comenzar';
 
   @override
-  String get showDebugInfo => 'Show debug info';
+  String get showDebugInfo => 'Mostrar información de depuración';
 
   @override
-  String get clear => 'Clear';
+  String get clear => 'Borrar';
 
   @override
-  String get clearCache => 'Clear cache';
+  String get clearCache => 'Borrar caché';
 
   @override
-  String get yes => 'Yes';
+  String get yes => 'Sí';
 
   @override
-  String get no => 'No';
+  String get no => 'No (negación)';
 
   @override
-  String get switchTheme => 'Switch theme';
+  String get switchTheme => 'Cambiar tema';
 
   @override
-  String get light => 'Light';
+  String get light => 'Claro';
 
   @override
-  String get dark => 'Dark';
+  String get dark => 'Oscuro';
 
   @override
-  String get system => 'System';
+  String get system => 'Sistema';
 
   @override
-  String get play2 => 'Play';
+  String get play2 => 'Reproducir';
 
   @override
-  String get playQueue => 'Play queue';
+  String get playQueue => 'Reproducir cola';
 
   @override
-  String get remove => 'Remove';
+  String get remove => 'Quitar';
 
   @override
   String get migrateSettingsFromOlderVersions =>
-      'Migrate settings from older versions';
+      'Migrar ajustes de versiones anteriores';
 
   @override
-  String get tracks2 => 'Tracks';
+  String get tracks2 => 'Canciones';
 
   @override
-  String get anErrorOccurred => 'An error occurred';
+  String get anErrorOccurred => 'Ocurrió un error';
 
   @override
-  String get loading => 'Loading...';
+  String get loading => 'Cargando...';
 
   @override
-  String get offlineMode => 'Offline mode';
+  String get offlineMode => 'Modo sin conexión';
 
   @override
-  String get downloaded => 'Downloaded';
+  String get downloaded => 'Descargado';
 
   @override
   String get youtube => 'YouTube audio extraction';
@@ -761,17 +761,17 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get import => 'Import';
+  String get import => 'Importar';
 
   @override
-  String get export => 'Export';
+  String get export => 'Exportar';
 
   @override
-  String get nowPlaying => 'Now playing';
+  String get nowPlaying => 'Reproduciendo';
 
   @override
   String param(Object processed, Object total) {
-    return '$processed/$total';
+    return 'Procesado: $processed/$total';
   }
 
   @override
@@ -803,4 +803,33 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get k20 => '2.0×';
+
+  @override
+  String get exportToDownloadsDesc =>
+      'Guardar en la carpeta de descargas con otro nombre.';
+
+  @override
+  String get exportLrcButton => 'Descargar LRC';
+
+  @override
+  String get exportAudioButton => 'Descargar audio';
+
+  @override
+  String exportLrcSuccess(String fileName) {
+    return '$fileName descargado';
+  }
+
+  @override
+  String exportAudioSuccess(String fileName) {
+    return '$fileName descargado';
+  }
+
+  @override
+  String get exportLrcFailed => 'Error al descargar LRC';
+
+  @override
+  String get exportAudioFailed => 'Error al descargar audio';
+
+  @override
+  String get exportNoFile => 'Sin archivo';
 }

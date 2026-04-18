@@ -23,6 +23,56 @@ extension _SettingsActions on _SettingsTab {
       ),
     );
   }
+  Future<String?> _materializePickedFile(
+    PlatformFile file, {
+    required String subDir,
+    String? preferredName,
+  }) async {
+    try {
+      final srcPath = file.path;
+      if (srcPath != null && srcPath.isNotEmpty) {
+        final srcFile = File(srcPath);
+        if (await srcFile.exists()) {
+          final normalized = srcPath.replaceAll('\\', '/').toLowerCase();
+          final isCachePath = normalized.contains('/cache/file_picker/');
+          if (!isCachePath) {
+            return srcPath;
+          }
+        }
+      }
+
+      final docsDir = await getApplicationDocumentsDirectory();
+      final targetDir = Directory(p.join(docsDir.path, subDir));
+      if (!targetDir.existsSync()) {
+        await targetDir.create(recursive: true);
+      }
+
+      final fileName = preferredName ?? file.name;
+      final safeName = '${DateTime.now().millisecondsSinceEpoch}_$fileName';
+      final destPath = p.join(targetDir.path, safeName);
+      final destFile = File(destPath);
+
+      if (srcPath != null && srcPath.isNotEmpty) {
+        final srcFile = File(srcPath);
+        if (await srcFile.exists()) {
+          await srcFile.copy(destPath);
+          return destPath;
+        }
+      }
+
+      final stream = file.readStream;
+      if (stream != null) {
+        final sink = destFile.openWrite();
+        await stream.pipe(sink);
+        return destPath;
+      }
+
+      return null;
+    } catch (e) {
+      debugPrint('[LocalFile] ファイル実体化失敗 (${file.name}): $e');
+      return null;
+    }
+  }
 
   /// YouTube音声ダウンロード処理を開始
   void _startYouTubeDownload(BuildContext context, WidgetRef ref, String url, String videoTitle) {
@@ -44,6 +94,7 @@ extension _SettingsActions on _SettingsTab {
       l10n.importFiles,
     );
     if (!ok) return;
+
     final importer = ref.read(localImportViewModelProvider.notifier);
     final libraryNotifier = ref.read(libraryViewModelProvider.notifier);
     final settings = ref.read(settingsViewModelProvider);
@@ -55,170 +106,10 @@ extension _SettingsActions on _SettingsTab {
         type: FileType.custom,
         allowedExtensions: ['mp3', 'm4a', 'lrc'],
         allowMultiple: true,
-        withReadStream: true,
+        withReadStream: false,
       );
-
-      if (pickResult != null && pickResult.files.isNotEmpty) {
-        debugPrint('[LocalFile] 選択されたファイル数: ${pickResult.files.length}');
-
-        final audioFiles = <PlatformFile>[];
-        final lrcFiles = <PlatformFile>[];
-
-        // ファイルを音声ファイルと歌詞ファイルに分類
-        for (final file in pickResult.files) {
-          final extension = file.extension?.toLowerCase();
-          debugPrint('[LocalFile] ファイル: ${file.name} (拡張子: $extension)');
-
-          if (extension == 'lrc') {
-            lrcFiles.add(file);
-          } else if (supportedAudioExtensions.contains(extension)) {
-            audioFiles.add(file);
-          }
-        }
-
-        debugPrint('[LocalFile] 音声ファイル: ${audioFiles.length}件');
-        debugPrint('[LocalFile] 歌詞ファイル: ${lrcFiles.length}件');
-
-        if (audioFiles.isEmpty && lrcFiles.isEmpty) {
-          _pushAppMessage(context, '対応するファイルが選択されていません');
-          return;
-        }
-
-        _pushAppMessage(context, '${audioFiles.length + lrcFiles.length}件のファイルを読込中...');
-
-        final audioPaths = <String>[];
-        final audioBaseByPath = <String, String>{};
-        for (final audioFile in audioFiles) {
-          if (audioFile.path != null) {
-            audioPaths.add(audioFile.path!);
-            audioBaseByPath[audioFile.path!] = p.basenameWithoutExtension(audioFile.name);
-          } else {
-            debugPrint('[LocalFile] 音声パス取得不可: ${audioFile.name}');
-          }
-        }
-
-        final lrcByBase = <String, String?>{};
-        for (final lrcFile in lrcFiles) {
-          final baseName = p.basenameWithoutExtension(lrcFile.name);
-          String? lrcPath = lrcFile.path;
-          final needsCopy = lrcPath == null || lrcPath.startsWith('content://');
-          if (needsCopy) {
-            final stream = lrcFile.readStream;
-            if (stream != null) {
-              try {
-                final tempDir = await getTemporaryDirectory();
-                final lrcDir = Directory(p.join(tempDir.path, 'lrc_import'));
-                if (!lrcDir.existsSync()) {
-                  await lrcDir.create(recursive: true);
-                }
-                final destPath = p.join(
-                  lrcDir.path,
-                  '${baseName}_${DateTime.now().millisecondsSinceEpoch}.lrc',
-                );
-                final outFile = File(destPath);
-                final sink = outFile.openWrite();
-                await stream.pipe(sink);
-                lrcPath = destPath;
-                debugPrint('[LocalFile] LRCを一時ファイルへコピー: $destPath');
-              } catch (e) {
-                debugPrint('[LocalFile] LRCコピー失敗: $e');
-              }
-            } else {
-              debugPrint('[LocalFile] LRC読込不可: ${lrcFile.name}');
-            }
-          }
-          lrcByBase[baseName] = lrcPath;
-        }
-
-        final lyricsByPath = <String, String?>{};
-        for (final audioPath in audioPaths) {
-          final base = audioBaseByPath[audioPath] ?? p.basenameWithoutExtension(audioPath);
-          lyricsByPath[audioPath] = lrcByBase[base];
-        }
-
-        final importResult = await importer.importFilesBatched(
-          audioPaths,
-          lyricsByPath: lyricsByPath,
-          batchSize: 30,
-          duplicateDetection: settings.localFileSettings.duplicateDetection,
-        );
-
-        // ライブラリを更新
-        await libraryNotifier.refreshLibrary();
-        debugPrint('[LocalFile] ライブラリ更新完了');
-
-        if (!context.mounted) return;
-        _pushAppMessage(context, 'インポート完了: ${importResult.imported}件 (スキップ ${importResult.skipped}件 / 失敗 ${importResult.failed}件)');
-      }
-    } catch (e) {
-      debugPrint('[LocalFile] エラー: $e');
-      if (!context.mounted) return;
-      _pushAppMessage(context, 'ファイル選択エラー: $e');
-    }
-  }
-
-  /// フォルダ読み込み機能
-  void _importFolderFiles(BuildContext context, WidgetRef ref) async {
-    final l10n = AppLocalizations.of(context)!;
-    final ok = await RewardUnlockService.ensureUnlocked(
-      context,
-      l10n.importFolder,
-    );
-    if (!ok) return;
-    final importer = ref.read(localImportViewModelProvider.notifier);
-    final libraryNotifier = ref.read(libraryViewModelProvider.notifier);
-    final settings = ref.read(settingsViewModelProvider);
-    const supportedAudioExtensions = ['mp3', 'm4a'];
-    debugPrint('[Folder] フォルダ選択開始');
-
-    try {
-      // 必要な権限を一元的に確認・要求する
-      final permsOk = await ensureStorageAndAudioPermissions(context);
-      if (!permsOk) {
-        if (!context.mounted) return;
-        _pushAppMessage(context, 'ストレージ権限が必要です');
-        return;
-      }
-      final folderPath = await FilePicker.platform.getDirectoryPath();
-      if (!context.mounted) return;
-      if (folderPath == null) return;
-
-      debugPrint('[Folder] 選択されたフォルダ: $folderPath');
-
-      // Directory に直接アクセスできる場合は従来処理
-      final directory = Directory(folderPath);
-      if (directory.existsSync()) {
-        _pushAppMessage(context, 'フォルダをスキャン中...');
-        final importResult = await importer.importFolderBatched(
-          folderPath,
-          batchSize: 30,
-          duplicateDetection: settings.localFileSettings.duplicateDetection,
-        );
-
-        // ライブラリを更新
-        await libraryNotifier.refreshLibrary();
-        debugPrint('[Folder] ライブラリ更新完了');
-
-        if (!context.mounted) return;
-        _pushAppMessage(context, 'インポート完了: ${importResult.imported}件 (スキップ ${importResult.skipped}件 / 失敗 ${importResult.failed}件)');
-        return;
-      }
-
-      // Android 14 などで content:// が返り Directory へアクセスできない場合は
-      // ファイル選択ダイアログへフォールバックして個別ファイルをインポートする
-      debugPrint('[Folder] Directory にアクセス不可、ファイル選択へフォールバック');
-      _pushAppMessage(context, 'フォルダへアクセスできません。ファイルを個別選択します...');
-
-      final pickResult = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['mp3', 'm4a', 'lrc'],
-        allowMultiple: true,
-        withReadStream: true,
-      );
-      if (!context.mounted) return;
 
       if (pickResult == null || pickResult.files.isEmpty) {
-        _pushAppMessage(context, 'ファイルが選択されませんでした');
         return;
       }
 
@@ -243,42 +134,29 @@ extension _SettingsActions on _SettingsTab {
       final audioPaths = <String>[];
       final audioBaseByPath = <String, String>{};
       for (final audioFile in audioFiles) {
-        if (audioFile.path != null) {
-          audioPaths.add(audioFile.path!);
-          audioBaseByPath[audioFile.path!] = p.basenameWithoutExtension(audioFile.name);
-        } else {
-          debugPrint('[Folder] 音声パス取得不可: ${audioFile.name}');
+        final materialized = await _materializePickedFile(
+          audioFile,
+          subDir: 'imported_audio',
+          preferredName: audioFile.name,
+        );
+        if (materialized != null) {
+          audioPaths.add(materialized);
+          audioBaseByPath[materialized] = p.basenameWithoutExtension(audioFile.name);
+          final normalized = materialized.replaceAll('\\', '/').toLowerCase();
+          if (normalized.contains('/app_flutter/imported_audio/')) {
+            debugPrint('[LocalFile] 注意: 元ファイルパスを取得できず管理領域へコピーしました: ${audioFile.name}');
+          }
         }
       }
 
       final lrcByBase = <String, String?>{};
       for (final lrcFile in lrcFiles) {
         final baseName = p.basenameWithoutExtension(lrcFile.name);
-        String? lrcPath = lrcFile.path;
-        final needsCopy = lrcPath == null || lrcPath.startsWith('content://');
-        if (needsCopy) {
-          final stream = lrcFile.readStream;
-          if (stream != null) {
-            try {
-              final tempDir = await getTemporaryDirectory();
-              final lrcDir = Directory(p.join(tempDir.path, 'lrc_import'));
-              if (!lrcDir.existsSync()) await lrcDir.create(recursive: true);
-              final destPath = p.join(
-                lrcDir.path,
-                '${baseName}_${DateTime.now().millisecondsSinceEpoch}.lrc',
-              );
-              final outFile = File(destPath);
-              final sink = outFile.openWrite();
-              await stream.pipe(sink);
-              lrcPath = destPath;
-              debugPrint('[Folder] LRC を一時ファイルへコピー: $destPath');
-            } catch (e) {
-              debugPrint('[Folder] LRC コピー失敗: $e');
-            }
-          } else {
-            debugPrint('[Folder] LRC 読込不可: ${lrcFile.name}');
-          }
-        }
+        final lrcPath = await _materializePickedFile(
+          lrcFile,
+          subDir: 'imported_lyrics',
+          preferredName: '${baseName}.lrc',
+        );
         lrcByBase[baseName] = lrcPath;
       }
 
@@ -291,6 +169,45 @@ extension _SettingsActions on _SettingsTab {
       final importResult = await importer.importFilesBatched(
         audioPaths,
         lyricsByPath: lyricsByPath,
+        batchSize: 30,
+        duplicateDetection: settings.localFileSettings.duplicateDetection,
+      );
+
+      await libraryNotifier.refreshLibrary();
+      if (!context.mounted) return;
+      _pushAppMessage(context, 'インポート完了: ${importResult.imported}件 (スキップ ${importResult.skipped}件 / 失敗 ${importResult.failed}件)');
+    } catch (e) {
+      if (!context.mounted) return;
+      _pushAppMessage(context, 'ファイル選択エラー: $e');
+    }
+  }
+
+  /// フォルダ読み込み機能
+  void _importFolderFiles(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context)!;
+    final ok = await RewardUnlockService.ensureUnlocked(
+      context,
+      l10n.importFolder,
+    );
+    if (!ok) return;
+    final importer = ref.read(localImportViewModelProvider.notifier);
+    final libraryNotifier = ref.read(libraryViewModelProvider.notifier);
+    final settings = ref.read(settingsViewModelProvider);
+    debugPrint('[Folder] フォルダ選択開始');
+
+    try {
+      // フォルダ選択のみで取り込みを行う。権限ダイアログはここでは表示しない。
+      final folderPath = await FilePicker.platform.getDirectoryPath();
+      if (!context.mounted) return;
+
+      if (folderPath == null || folderPath.isEmpty) {
+        _pushAppMessage(context, 'フォルダが選択されませんでした');
+        return;
+      }
+
+      _pushAppMessage(context, 'フォルダをスキャン中...');
+      final importResult = await importer.importFolderBatched(
+        folderPath,
         batchSize: 30,
         duplicateDetection: settings.localFileSettings.duplicateDetection,
       );
