@@ -58,6 +58,15 @@ dependencies:
   # カラーピッカー
   flutter_colorpicker: ^1.1.0
 
+  # 広告表示
+  google_mobile_ads: ^5.3.1
+
+  # アプリ内課金（定期購読）
+  in_app_purchase: ^3.2.0
+
+  # 外部URL起動（定期購読管理ページ）
+  url_launcher: ^6.3.0
+
   # ファイルパスの安定ハッシュ
   crypto: ^3.0.3
 
