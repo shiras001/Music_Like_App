@@ -189,6 +189,22 @@ class _FullPlayerScreenState extends ConsumerState<FullPlayerScreen> with _FullP
                               ),
                             ),
                           ),
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          child: IconButton(
+                            icon: const Icon(Icons.close),
+                            color: Theme.of(context).textTheme.bodyMedium?.color,
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.black.withAlpha((0.6 * 255).round()),
+                              padding: const EdgeInsets.all(8),
+                            ),
+                            onPressed: () {
+                              _tapFeedback(context);
+                              Navigator.of(context).maybePop();
+                            },
+                          ),
+                        ),
                         // キューボタン（右上）
                         Positioned(
                           top: 0,
@@ -227,12 +243,13 @@ class _FullPlayerScreenState extends ConsumerState<FullPlayerScreen> with _FullP
                           },
                         ),
                         Expanded(
-                          child: _buildMarqueeText(
-                            song.title,
-                            style: TextStyle(
-                              color: Theme.of(context).textTheme.bodyMedium?.color,
+                          child: SizedBox(
+                            height: titleFontSize * 1.4,
+                            child: _AnimatedMarquee(
+                              text: song.title,
                               fontSize: titleFontSize,
-                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).textTheme.bodyMedium?.color,
+                              initialDelayMs: 2000,
                             ),
                           ),
                         ),

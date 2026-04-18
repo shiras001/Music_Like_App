@@ -59,7 +59,7 @@ class MiniPlayer extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(
-                    height: 18,
+                    height: 22,
                     child: ClipRect(
                       child: _AnimatedMarquee(
                         text: song.title,
@@ -69,26 +69,16 @@ class MiniPlayer extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   SizedBox(
-                    height: 14,
+                    height: 18,
                     child: ClipRect(
-                      child: song.artist.length > 20
-                          ? _AnimatedMarquee(
-                              text: song.artist,
-                              fontSize: 12,
-                              color: Colors.grey[400],
-                              initialDelayMs: 2000,
-                            )
-                          : Text(
-                              song.artist,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: Colors.grey[400],
-                                fontSize: 12,
-                              ),
-                            ),
+                      child: _AnimatedMarquee(
+                        text: song.artist,
+                        fontSize: 12,
+                        color: Colors.grey[400],
+                        initialDelayMs: 2000,
+                      ),
                     ),
                   ),
                 ],

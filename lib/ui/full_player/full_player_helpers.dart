@@ -82,9 +82,6 @@ mixin _FullPlayerHelpers on ConsumerState<FullPlayerScreen> {
     }).join('\n');
 
     await file.writeAsString(adjusted);
-    // Ensure storage permission before writing
-    final ok = await ensureStorageAndAudioPermissions(context);
-    if (!ok) return;
     if (!mounted) return;
     setState(() {
       _adjustHasApplied = true;
@@ -101,11 +98,8 @@ mixin _FullPlayerHelpers on ConsumerState<FullPlayerScreen> {
       final backupPath = '${file.path}.bak';
       final backupFile = File(backupPath);
       if (backupFile.existsSync()) {
-        final ok = await ensureStorageAndAudioPermissions(context);
-        if (ok) {
-          await file.writeAsString(await backupFile.readAsString());
-          await ref.read(playerViewModelProvider.notifier).loadLyricsFromPath(file.path);
-        }
+        await file.writeAsString(await backupFile.readAsString());
+        await ref.read(playerViewModelProvider.notifier).loadLyricsFromPath(file.path);
       }
       if (!mounted) return;
       setState(() {
@@ -302,18 +296,16 @@ mixin _FullPlayerHelpers on ConsumerState<FullPlayerScreen> {
     TextStyle? style,
     int maxLines = 1,
   }) {
+    final resolvedStyle = style ?? const TextStyle();
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 300),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: text.length > 20
-            ? const BouncingScrollPhysics()
-            : const NeverScrollableScrollPhysics(),
-        child: Text(
-          text,
-          maxLines: maxLines,
-          overflow: TextOverflow.clip,
-          style: style,
+      child: SizedBox(
+        height: (resolvedStyle.fontSize ?? 14) * 1.5,
+        child: _AnimatedMarquee(
+          text: text,
+          fontSize: resolvedStyle.fontSize ?? 14,
+          color: resolvedStyle.color,
+          initialDelayMs: 2000,
         ),
       ),
     );

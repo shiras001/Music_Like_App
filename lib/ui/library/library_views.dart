@@ -106,6 +106,10 @@ extension _LibraryTabViews on _LibraryTabState {
               ),
             );
           },
+          onLongPress: () {
+            _tapFeedback(context);
+            _showArtistContextMenu(context, artist.key, artist.value);
+          },
         );
       },
     );
@@ -178,6 +182,10 @@ extension _LibraryTabViews on _LibraryTabState {
                 ),
               ),
             );
+          },
+          onLongPress: () {
+            _tapFeedback(context);
+            _showAlbumContextMenu(context, firstSong.album, album.value);
           },
         );
       },
@@ -274,6 +282,7 @@ extension _LibraryTabViews on _LibraryTabState {
                 _CategoryDetailScreen(
                   type: CategoryDetailType.playlist,
                   title: playlist.name,
+                  playlistId: playlist.id,
                   songs: playlistSongs,
                   heroTag: heroTag,
                 ),

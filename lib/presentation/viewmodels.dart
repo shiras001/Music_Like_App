@@ -10,7 +10,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:audio_service/audio_service.dart' as audio_service;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
@@ -132,12 +131,17 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
               updatedQueue[idx] = updatedSong;
             }
             state = state.copyWith(currentSong: updatedSong, queue: updatedQueue);
-            _ref.read(libraryViewModelProvider.notifier).updateSongMetadata(
-              current.id,
-              {
-                'localPath': current.localPath,
-                'durationMs': dur.inMilliseconds,
-              },
+            unawaited(
+              _ref
+                  .read(libraryViewModelProvider.notifier)
+                  .updateSongMetadata(
+                    current.id,
+                    {
+                      'localPath': current.localPath,
+                      'durationMs': dur.inMilliseconds,
+                    },
+                  )
+                  .catchError((_) {}),
             );
           }
         }
@@ -1019,6 +1023,7 @@ class LibraryViewModel extends StateNotifier<LibraryState> {
       await loadLibrary();
     } catch (e) {
       state = state.copyWith(error: e.toString());
+      rethrow;
     }
   }
 
