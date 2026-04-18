@@ -69,6 +69,74 @@ extension _LibraryTabDialogs on _LibraryTabState {
     );
   }
 
+  void _showArtistContextMenu(BuildContext context, String artist, List<Song> songs) {
+    final l10n = AppLocalizations.of(context)!;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.play_arrow, color: Theme.of(context).iconTheme.color),
+              title: Text(l10n.commonPlay, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+              onTap: () {
+                _tapFeedback(context);
+                Navigator.pop(context);
+                ref.read(playerViewModelProvider.notifier).setQueue(songs, startIndex: 0, autoPlay: true);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.shuffle, color: Theme.of(context).iconTheme.color),
+              title: Text(l10n.commonShuffle, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+              onTap: () {
+                _tapFeedback(context);
+                Navigator.pop(context);
+                final shuffled = List<Song>.from(songs)..shuffle();
+                ref.read(playerViewModelProvider.notifier).setQueue(shuffled, startIndex: 0, autoPlay: true);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAlbumContextMenu(BuildContext context, String album, List<Song> songs) {
+    final l10n = AppLocalizations.of(context)!;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.play_arrow, color: Theme.of(context).iconTheme.color),
+              title: Text(l10n.commonPlay, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+              onTap: () {
+                _tapFeedback(context);
+                Navigator.pop(context);
+                ref.read(playerViewModelProvider.notifier).setQueue(songs, startIndex: 0, autoPlay: true);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.shuffle, color: Theme.of(context).iconTheme.color),
+              title: Text(l10n.commonShuffle, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+              onTap: () {
+                _tapFeedback(context);
+                Navigator.pop(context);
+                final shuffled = List<Song>.from(songs)..shuffle();
+                ref.read(playerViewModelProvider.notifier).setQueue(shuffled, startIndex: 0, autoPlay: true);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showLyricsEditOptions(BuildContext context, Song song) {
     final l10n = AppLocalizations.of(context)!;
     showDialog(

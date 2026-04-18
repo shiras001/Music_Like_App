@@ -282,7 +282,6 @@ extension _LibraryTabViews on _LibraryTabState {
                 _CategoryDetailScreen(
                   type: CategoryDetailType.playlist,
                   title: playlist.name,
-                  playlistId: playlist.id,
                   songs: playlistSongs,
                   heroTag: heroTag,
                 ),
